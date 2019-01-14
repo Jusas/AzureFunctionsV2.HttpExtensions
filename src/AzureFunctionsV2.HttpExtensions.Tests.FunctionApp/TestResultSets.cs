@@ -12,6 +12,13 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.FunctionApp
         Three
     }
 
+    public class HeaderTestResultSet
+    {
+        public string StringParam { get; set; }
+        public int IntParam { get; set; }
+        public TestEnum EnumParam { get; set; }
+    }
+
     public class QueryTestResultSet
     {
         public string StringParam { get; set; }

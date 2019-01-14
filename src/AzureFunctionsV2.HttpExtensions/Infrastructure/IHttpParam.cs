@@ -2,7 +2,7 @@
 
 namespace AzureFunctionsV2.HttpExtensions.Infrastructure
 {
-    interface IHttpParam
+    public interface IHttpParam
     {
         Attribute HttpExtensionAttribute { get; set; }
     }

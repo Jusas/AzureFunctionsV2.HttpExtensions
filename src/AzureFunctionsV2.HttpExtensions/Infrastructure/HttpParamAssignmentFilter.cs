@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using AzureFunctionsV2.HttpExtensions.Annotations;
 using AzureFunctionsV2.HttpExtensions.Exceptions;
 using Microsoft.AspNetCore.Http;
@@ -17,10 +18,12 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
     public class HttpParamAssignmentFilter : IFunctionFilter, IFunctionInvocationFilter
     {
         private IHttpRequestStore _httpRequestStore;
+        private IHttpParamValueDeserializer _paramValueDeserializer;
 
-        public HttpParamAssignmentFilter(IHttpRequestStore httpRequestStore)
+        public HttpParamAssignmentFilter(IHttpRequestStore httpRequestStore, IHttpParamValueDeserializer paramValueDeserializer)
         {
             _httpRequestStore = httpRequestStore;
+            _paramValueDeserializer = paramValueDeserializer;
         }
 
         public async Task OnExecutingAsync(FunctionExecutingContext executingContext, CancellationToken cancellationToken)
@@ -41,7 +44,7 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
 
                             if (attributeType == typeof(HttpBodyAttribute))
                             {
-                                bool wasAssigned = TryAssignFromBody(httpRequest.Body, parameterValue, parameterName, httpRequest);
+                                bool wasAssigned = await TryAssignFromBody(httpRequest.Body, parameterValue, httpRequest, executingContext);
                                 if(!wasAssigned && ((HttpBodyAttribute)parameterValue.HttpExtensionAttribute).Required)
                                     throw new ParameterRequiredException("Body parameter is required", null, parameterName, httpRequest.HttpContext);
                             }
@@ -50,7 +53,7 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
                                 var formFieldName = ((HttpFormAttribute)parameterValue.HttpExtensionAttribute).Name ??
                                                      parameterName;
                                 if (httpRequest.Form.ContainsKey(formFieldName))
-                                    TryAssignFromStringValues(httpRequest.Form[formFieldName], parameterValue, parameterName, httpRequest);
+                                    await TryAssignFromStringValues(httpRequest.Form[formFieldName], parameterValue, parameterName, httpRequest, executingContext);
                                 else if(((HttpFormAttribute)parameterValue.HttpExtensionAttribute).Required)
                                     throw new ParameterRequiredException($"Form field '{formFieldName}' is required", null, parameterName, httpRequest.HttpContext);
                             }
@@ -59,7 +62,7 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
                                 var headerName = ((HttpHeaderAttribute) parameterValue.HttpExtensionAttribute).Name ??
                                                  parameterName;
                                 if (httpRequest.Headers.ContainsKey(headerName))
-                                    TryAssignFromStringValues(httpRequest.Headers[headerName], parameterValue, parameterName, httpRequest);
+                                    await TryAssignFromStringValues(httpRequest.Headers[headerName], parameterValue, parameterName, httpRequest, executingContext);
                                 else if (((HttpHeaderAttribute)parameterValue.HttpExtensionAttribute).Required)
                                     throw new ParameterRequiredException($"Header '{headerName}' is required", null, parameterName, httpRequest.HttpContext);
                             }
@@ -68,7 +71,7 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
                                 var queryParamName = ((HttpQueryAttribute) parameterValue.HttpExtensionAttribute).Name ??
                                                      parameterName;
                                 if (httpRequest.Query.ContainsKey(queryParamName))
-                                    TryAssignFromStringValues(httpRequest.Query[queryParamName], parameterValue, parameterName, httpRequest);
+                                    await TryAssignFromStringValues(httpRequest.Query[queryParamName], parameterValue, parameterName, httpRequest, executingContext);
                                 else if (((HttpQueryAttribute)parameterValue.HttpExtensionAttribute).Required)
                                     throw new ParameterRequiredException($"Query parameter '{queryParamName}' is required", null, parameterName, httpRequest.HttpContext);
                             }
@@ -79,16 +82,112 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
             }
         }
 
-        private bool TryAssignFromBody(Stream body, IHttpParam param, string parameterName, HttpRequest httpRequest)
-        {
-            // TODO
-            return true;
-        }
-
-        private void TryAssignFromStringValues(StringValues value, IHttpParam param, string parameterName, HttpRequest httpRequest)
+        private async Task<bool> TryAssignFromBody(Stream body, IHttpParam param, HttpRequest httpRequest, 
+            FunctionExecutingContext functionExecutingContext)
         {
             var httpParamType = param.GetType();
             var httpParamValueType = httpParamType.GetGenericArguments().First();
+            var contentType = httpRequest.ContentType;
+
+            try
+            {
+                // Allow overriding from a custom deserializer.
+                if (_paramValueDeserializer != null)
+                {
+                    DeserializerResult resultFromDeserializer;
+
+                    resultFromDeserializer = await _paramValueDeserializer.DeserializeBodyParameter(body, httpParamValueType, 
+                        functionExecutingContext.FunctionName, httpRequest);
+                    if (resultFromDeserializer.DidDeserialize)
+                    {
+                        httpParamType.GetProperty(nameof(HttpParam<object>.Value))?.SetValue(param, resultFromDeserializer.Result);
+                        return true;
+                    }
+                }
+
+                // If no custom deserialization, proceed with the supported content deserialization.
+                if (contentType.ToLowerInvariant().EndsWith("/xml", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (body.Length == 0)
+                        return false;
+
+                    XmlSerializer xmlSerializer = new XmlSerializer(httpParamValueType);
+                    var deserializedValue = xmlSerializer.Deserialize(body);
+                    httpParamType.GetProperty(nameof(HttpParam<object>.Value))?.SetValue(param, deserializedValue);
+                }
+                else if (contentType.ToLowerInvariant().EndsWith("/json", StringComparison.OrdinalIgnoreCase))
+                {
+                    using (StreamReader sr = new StreamReader(body))
+                    {
+                        var content = await sr.ReadToEndAsync();
+                        if (content.Length == 0)
+                            return false;
+
+                        var deserializedValue = JsonConvert.DeserializeObject(content, httpParamValueType);
+                        httpParamType.GetProperty(nameof(HttpParam<object>.Value))?.SetValue(param, deserializedValue);
+                    }
+                }
+                else if (contentType.ToLowerInvariant().EndsWith("text/plain", StringComparison.OrdinalIgnoreCase))
+                {
+                    using (StreamReader sr = new StreamReader(body))
+                    {
+                        var content = await sr.ReadToEndAsync();
+                        if (content.Length == 0)
+                            return false;
+
+                        httpParamType.GetProperty(nameof(HttpParam<object>.Value))?.SetValue(param, content);
+                    }
+                }
+                else
+                {
+                    throw new ParameterFormatConversionException($"Body with content type '{contentType}' is unsupported", null, "body", httpRequest.HttpContext);
+                }
+                
+            }
+            catch (Exception e)
+            {
+                throw new ParameterFormatConversionException($"Failed to convert body to type '{httpParamValueType.Name}' " +
+                    $"with content type '{contentType}'", e, "body", httpRequest.HttpContext);
+            }
+
+            return true;
+        }
+
+        private async Task TryAssignFromStringValues(StringValues value, IHttpParam param, string parameterName, HttpRequest httpRequest,
+            FunctionExecutingContext functionExecutingContext)
+        {
+            var httpParamType = param.GetType();
+            var httpParamValueType = httpParamType.GetGenericArguments().First();
+
+            // Use custom deserializer if present.
+            if (_paramValueDeserializer != null)
+            {
+                DeserializerResult resultFromDeserializer = null;
+                object handlerCreatedObject = null;
+
+                if (param.HttpExtensionAttribute is HttpFormAttribute)
+                {
+                    resultFromDeserializer = await _paramValueDeserializer.DeserializeFormParameter(parameterName, value,
+                        httpParamValueType, functionExecutingContext.FunctionName, httpRequest);
+                }
+                else if (param.HttpExtensionAttribute is HttpHeaderAttribute)
+                {
+                    resultFromDeserializer = await _paramValueDeserializer.DeserializeHeaderParameter(parameterName, value,
+                        httpParamValueType, functionExecutingContext.FunctionName, httpRequest);
+                }
+                else if (param.HttpExtensionAttribute is HttpQueryAttribute)
+                {
+                    resultFromDeserializer = await _paramValueDeserializer.DeserializeQueryParameter(parameterName, value,
+                        httpParamValueType, functionExecutingContext.FunctionName, httpRequest);
+                }
+
+                if (resultFromDeserializer.DidDeserialize)
+                {
+                    httpParamType.GetProperty(nameof(HttpParam<object>.Value))?.SetValue(param, resultFromDeserializer.Result);
+                    return;
+                }
+            }
+
             if (value.Count > 0 && typeof(IEnumerable).IsAssignableFrom(httpParamValueType) && httpParamValueType != typeof(string))
             {
                 TryAssignFromMultiStringValues(value, param, parameterName, httpRequest);
