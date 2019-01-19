@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using AzureFunctionsV2.HttpExtensions.Annotations;
+using AzureFunctionsV2.HttpExtensions.Exceptions;
 using AzureFunctionsV2.HttpExtensions.Infrastructure;
 using AzureFunctionsV2.HttpExtensions.Tests.Helpers;
 using AzureFunctionsV2.HttpExtensions.Tests.Mocks;
@@ -21,8 +22,15 @@ using Xunit;
 
 namespace AzureFunctionsV2.HttpExtensions.Tests
 {
+    /// <summary>
+    /// Tests for HttpParamAssignmentFilter.
+    /// </summary>
     public class HttpParamAssignmentFilterTests
     {
+        /// <summary>
+        /// Should assign HttpParam with HttpFormAttribute with the corresponding value in HttpRequest.Form.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task Should_assign_FormAttributed_param_value_from_Request_Form()
         {
@@ -43,6 +51,10 @@ namespace AzureFunctionsV2.HttpExtensions.Tests
 
         }
 
+        /// <summary>
+        /// Should assign HttpParam with HttpHeaderAttribute with the corresponding value in HttpRequest.Headers.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task Should_assign_HeaderAttributed_param_value_from_Request_Headers()
         {
@@ -62,12 +74,40 @@ namespace AzureFunctionsV2.HttpExtensions.Tests
 
         }
 
+        /// <summary>
+        /// Should assign HttpParam with HttpQueryAttribute with the corresponding value in HttpRequest.Query.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task Should_assign_QueryAttributed_param_value_from_Request_Query()
+        {
+            // Arrange
+            var mockedFunctionRequestContext = new MockedFunctionRequestContext();
+            var queryParam = mockedFunctionRequestContext.AddQueryHttpParam<string>("queryParam", "qp");
+            mockedFunctionRequestContext.HttpRequest.Query = new QueryCollection(new Dictionary<string, StringValues>() {{"qp", "hello"}});
+
+            var httpParamAssignmentFilter = new HttpParamAssignmentFilter(mockedFunctionRequestContext.RequestStoreMock.Object, null);
+
+            // Act
+            await httpParamAssignmentFilter.OnExecutingAsync(mockedFunctionRequestContext.FunctionExecutingContext,
+                new CancellationToken());
+
+            // Assert
+            Assert.Equal("hello", queryParam.Value);
+
+        }
+
         public class ComplexObject
         {
             public string Stringvalue { get; set; }
             public int IntValue { get; set; }
         }
 
+        /// <summary>
+        /// Should assign HttpParam with HttpBodyAttribute with the corresponding value in HttpRequest.Body.
+        /// Specifically should deserialize the body content to ComplexObject.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task Should_assign_BodyAttributed_complex_object_param_value_from_Request_Body()
         {
@@ -90,6 +130,11 @@ namespace AzureFunctionsV2.HttpExtensions.Tests
 
         }
 
+        /// <summary>
+        /// Should assign HttpParam with HttpBodyAttribute with the corresponding value in HttpRequest.Body.
+        /// Specifically should deserialize the the body content to a List&lt;string&gt;
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task Should_assign_BodyAttributed_list_param_value_from_Request_Body()
         {
@@ -112,6 +157,11 @@ namespace AzureFunctionsV2.HttpExtensions.Tests
 
         }
 
+        /// <summary>
+        /// Should assign HttpParam with HttpBodyAttribute with the corresponding value in HttpRequest.Body.
+        /// Specifically should deserialize the the body content which is XML to ComplexObject.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task Should_assign_BodyAttributed_complex_object_from_body_xml_string_to_complex_object()
         {
@@ -139,7 +189,13 @@ namespace AzureFunctionsV2.HttpExtensions.Tests
             bodyParam.Value.Should().BeEquivalentTo(complexInputObject);
 
         }
-
+        
+        /// <summary>
+        /// Should assign HttpParam with HttpBodyAttribute with the corresponding value in HttpRequest.Body.
+        /// Specifically should deserialize the the body content which is a JSON serialized
+        /// string array to a List&lt;string&gt;
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task Should_assign_BodyAttributed_array_param_value_from_Request_Body()
         {
@@ -162,6 +218,12 @@ namespace AzureFunctionsV2.HttpExtensions.Tests
 
         }
 
+        /// <summary>
+        /// Should assign HttpParam with HttpFormAttribute with the corresponding value in HttpRequest.Form.Files.
+        /// HttpParams of type IFormFile and Stream should be assigned from the corresponding entries in
+        /// HttpRequest.Form.Files.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task Should_assign_FormAttributed_param_value_from_Request_Form_Files()
         {
@@ -205,6 +267,100 @@ namespace AzureFunctionsV2.HttpExtensions.Tests
             var resultBuffer2 = new byte[mockDataBytes2.Length];
             formParam2.Value.Read(resultBuffer2, 0, resultBuffer2.Length);
             mockDataBytes2.Should().BeEquivalentTo(resultBuffer2);
+
+        }
+
+        /// <summary>
+        /// Should assign HttpParam with HttpFormAttribute with HttpRequest.Form.Files.
+        /// More specifically when the HttpParam is of type IFormFileCollection the HttpRequest.Form.Files
+        /// should be assigned to its value.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task Should_assign_FormAttributed_IFormFileCollection_param_value_from_Request_Form_Files()
+        {
+            // Arrange
+            var mockedFunctionRequestContext = new MockedFunctionRequestContext();
+            var formParam = mockedFunctionRequestContext.AddFormHttpParam<IFormFileCollection>("files");
+            mockedFunctionRequestContext.HttpRequest.Form = new FormCollection(new Dictionary<string, StringValues>(), 
+                new FormFileCollection()
+                {
+                    new FormFile(new MemoryStream(), 0, 0, "file1", "file1.txt"),
+                    new FormFile(new MemoryStream(), 0, 0, "file2", "file2.txt"),
+                });
+
+            var httpParamAssignmentFilter = new HttpParamAssignmentFilter(mockedFunctionRequestContext.RequestStoreMock.Object, null);
+
+            // Act
+            await httpParamAssignmentFilter.OnExecutingAsync(mockedFunctionRequestContext.FunctionExecutingContext,
+                new CancellationToken());
+
+            // Assert
+            Assert.Equal(2, formParam.Value.Count);
+            Assert.Equal("file1", formParam.Value[0].Name);
+            Assert.Equal("file2", formParam.Value[1].Name);
+
+        }
+
+        /// <summary>
+        /// Produces mocked function contexts with HttpParams that are assigned from different
+        /// request sources (form, body, query, header).
+        /// </summary>
+        /// <returns></returns>
+        public List<MockedFunctionRequestContext> FunctionContextsWithRequiredHttpParamsButWithNoData()
+        {
+            List<MockedFunctionRequestContext> contexts = new List<MockedFunctionRequestContext>();
+
+            MockedFunctionRequestContext mockedFunctionRequestContext;
+
+            mockedFunctionRequestContext = new MockedFunctionRequestContext();
+            var bodyParam = mockedFunctionRequestContext.AddBodyHttpParam<List<string>>("body", true);
+            mockedFunctionRequestContext.HttpRequest.Body = null;
+            contexts.Add(mockedFunctionRequestContext);
+
+            mockedFunctionRequestContext = new MockedFunctionRequestContext();
+            var queryParam = mockedFunctionRequestContext.AddQueryHttpParam<string>("query", required: true);
+            mockedFunctionRequestContext.HttpRequest.Query = new QueryCollection(new Dictionary<string, StringValues>());
+            contexts.Add(mockedFunctionRequestContext);
+
+            mockedFunctionRequestContext = new MockedFunctionRequestContext();
+            var formParam = mockedFunctionRequestContext.AddFormHttpParam<int>("form", required: true);
+            mockedFunctionRequestContext.HttpRequest.Form = new FormCollection(new Dictionary<string, StringValues>(), new FormFileCollection());
+            contexts.Add(mockedFunctionRequestContext);
+
+            mockedFunctionRequestContext = new MockedFunctionRequestContext();
+            var headerParam = mockedFunctionRequestContext.AddHeaderHttpParam<string>("header", required: true);
+            mockedFunctionRequestContext.HttpRequest.HeaderDictionary = new HeaderDictionary(new Dictionary<string, StringValues>());
+            contexts.Add(mockedFunctionRequestContext);
+
+            mockedFunctionRequestContext = new MockedFunctionRequestContext();
+            var formFileCollectionParam = mockedFunctionRequestContext.AddFormHttpParam<IFormFileCollection>("files");
+            mockedFunctionRequestContext.HttpRequest.Form = new FormCollection(new Dictionary<string, StringValues>(),
+                new FormFileCollection());
+
+            return contexts;
+        }
+
+        /// <summary>
+        /// Checks that when a parameter is missing or null the ParameterRequiredException gets thrown.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task Should_throw_exception_when_required_parameters_missing_or_null()
+        {
+            // Arrange
+            var testContexts = FunctionContextsWithRequiredHttpParamsButWithNoData();
+
+            // Act
+            foreach (var testContext in testContexts)
+            {
+                var httpParamAssignmentFilter = new HttpParamAssignmentFilter(testContext.RequestStoreMock.Object, null);
+                await Assert.ThrowsAnyAsync<ParameterRequiredException>(async () =>
+                {
+                    await httpParamAssignmentFilter.OnExecutingAsync(testContext.FunctionExecutingContext,
+                        new CancellationToken());
+                });
+            }
 
         }
 

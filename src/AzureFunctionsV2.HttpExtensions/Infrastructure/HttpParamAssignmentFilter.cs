@@ -54,6 +54,12 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
                                                      parameterName;
                                 if (httpRequest.Form.ContainsKey(formFieldName))
                                 {
+                                    if (((HttpFormAttribute) parameterValue.HttpExtensionAttribute).Required &&
+                                        string.IsNullOrEmpty(httpRequest.Form[formFieldName].ToString()))
+                                    {
+                                        throw new ParameterRequiredException($"Form field '{formFieldName}' is required", 
+                                            null, parameterName, httpRequest.HttpContext);
+                                    }
                                     await TryAssignFromStringValues(httpRequest.Form[formFieldName], parameterValue,
                                         parameterName, httpRequest, executingContext);
                                 }
@@ -64,7 +70,7 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
                                 }
                                 // TODO: make more extensible, use case: uploading multiple files that need to be deserialized into objects.
                                 else if (httpRequest.Form.Files != null &&
-                                         typeof(IFormCollection) == GetHttpParamValueType(parameterValue))
+                                         typeof(IFormFileCollection) == GetHttpParamValueType(parameterValue))
                                 {
                                     if (!httpRequest.Form.Files.Any() &&
                                         ((HttpFormAttribute) parameterValue.HttpExtensionAttribute).Required)
@@ -178,6 +184,9 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
                 // If no custom deserialization, proceed with the supported content deserialization.
                 if (contentType.ToLowerInvariant().EndsWith("/xml", StringComparison.OrdinalIgnoreCase))
                 {
+                    if (body == null)
+                        return false;
+
                     if (body.Length == 0)
                         return false;
 
@@ -187,6 +196,9 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
                 }
                 else if (contentType.ToLowerInvariant().EndsWith("/json", StringComparison.OrdinalIgnoreCase))
                 {
+                    if (body == null)
+                        return false;
+
                     using (StreamReader sr = new StreamReader(body))
                     {
                         var content = await sr.ReadToEndAsync();
@@ -199,6 +211,9 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
                 }
                 else if (contentType.ToLowerInvariant().EndsWith("text/plain", StringComparison.OrdinalIgnoreCase))
                 {
+                    if (body == null)
+                        return false;
+
                     using (StreamReader sr = new StreamReader(body))
                     {
                         var content = await sr.ReadToEndAsync();

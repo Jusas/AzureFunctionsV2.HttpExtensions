@@ -19,8 +19,10 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
 
         public async Task HandleException(FunctionExceptionContext exceptionContext, HttpContext httpContext)
         {
-            if(_errorFormatter != null)
-                await _errorFormatter.WriteErrorResponse(exceptionContext, httpContext.Response);
+            httpContext.Response.OnStarting(async () =>
+                {
+                    await _errorFormatter.WriteErrorResponse(exceptionContext, httpContext.Response);
+                });
         }
     }
 }

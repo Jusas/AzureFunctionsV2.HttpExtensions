@@ -13,45 +13,30 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
     {
         public async Task WriteErrorResponse(FunctionExceptionContext exceptionContext, HttpResponse response)
         {
-            var httpExtensionsException = exceptionContext.Exception as HttpExtensionsException;
-            if (httpExtensionsException == null)
-            {
-                httpExtensionsException = exceptionContext.Exception.InnerException as HttpExtensionsException;
-            }
+            var errorObject = new Dictionary<string, string>();
+
+            var httpExtensionsException = exceptionContext.Exception as HttpExtensionsException 
+                                          ?? exceptionContext.Exception.InnerException as HttpExtensionsException;
 
             if (httpExtensionsException != null)
             {
                 if (httpExtensionsException is ParameterFormatConversionException ||
                     httpExtensionsException is ParameterRequiredException)
                 {
-                    response.OnStarting(async () =>
-                    {
-                        response.StatusCode = 400;
-                        response.Headers.Add("Content-Type", "application/json");
-                        var errorObject = new
-                        {
-                            message = httpExtensionsException.Message,
-                            parameter = httpExtensionsException.ParameterName
-                        };
-                        var json = JsonConvert.SerializeObject(errorObject);
-                        await response.WriteAsync(json);
-                    });
+                    response.StatusCode = 400;
+                    response.Headers.Add("Content-Type", "application/json");
+                    errorObject.Add("message", httpExtensionsException.Message);
+                    errorObject.Add("parameter", httpExtensionsException.ParameterName);
+                    await response.WriteAsync(JsonConvert.SerializeObject(errorObject));
                 }
 
                 return;
             }
 
-            response.OnStarting(async () =>
-            {
-                response.StatusCode = 500;
-                response.Headers.Add("Content-Type", "application/json");
-                var errorObject = new
-                {
-                    message = exceptionContext.Exception.Message
-                };
-                var json = JsonConvert.SerializeObject(errorObject);
-                await response.WriteAsync(json);
-            });
+            response.StatusCode = 500;
+            response.Headers.Add("Content-Type", "application/json");
+            errorObject.Add("message", exceptionContext.Exception.Message);
+            await response.WriteAsync(JsonConvert.SerializeObject(errorObject));
         }
     }
 }

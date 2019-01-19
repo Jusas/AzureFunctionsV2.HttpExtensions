@@ -16,7 +16,7 @@ namespace AzureFunctionsV2.HttpExtensions.Tests
             Guid guid = Guid.NewGuid();
 
             // Act
-            var newRequest = new MockHttpRequest();
+            var newRequest = new MockHttpRequest(null);
             requestStore.Set(guid, newRequest);
             var returnedRequest = requestStore.Get(guid);
             requestStore.Remove(guid);

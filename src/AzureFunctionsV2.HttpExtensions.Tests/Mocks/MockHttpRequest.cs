@@ -8,12 +8,18 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.Mocks
 {
     public class MockHttpRequest : HttpRequest
     {
+        public MockHttpRequest(MockHttpContext httpContext)
+        {
+            HttpContext = httpContext;
+            httpContext?.SetRequest(this);
+        }
+
         public override async Task<IFormCollection> ReadFormAsync(CancellationToken cancellationToken = new CancellationToken())
         {
             throw new NotImplementedException();
         }
 
-        public override HttpContext HttpContext { get; }
+        public override HttpContext HttpContext { get; }        
         public override string Method { get; set; }
         public override string Scheme { get; set; }
         public override bool IsHttps { get; set; }
