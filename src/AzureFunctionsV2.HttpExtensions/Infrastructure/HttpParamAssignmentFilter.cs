@@ -53,7 +53,27 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
                                 var formFieldName = ((HttpFormAttribute)parameterValue.HttpExtensionAttribute).Name ??
                                                      parameterName;
                                 if (httpRequest.Form.ContainsKey(formFieldName))
-                                    await TryAssignFromStringValues(httpRequest.Form[formFieldName], parameterValue, parameterName, httpRequest, executingContext);
+                                {
+                                    await TryAssignFromStringValues(httpRequest.Form[formFieldName], parameterValue,
+                                        parameterName, httpRequest, executingContext);
+                                }
+                                else if (httpRequest.Form.Files.Any(x => x.Name == formFieldName))
+                                {
+                                    await TryAssignFormFile(httpRequest.Form.Files.First(x => x.Name == formFieldName),
+                                        parameterValue, parameterName, httpRequest, executingContext);
+                                }
+                                // TODO: make more extensible, use case: uploading multiple files that need to be deserialized into objects.
+                                else if (httpRequest.Form.Files != null &&
+                                         typeof(IFormCollection) == GetHttpParamValueType(parameterValue))
+                                {
+                                    if (!httpRequest.Form.Files.Any() &&
+                                        ((HttpFormAttribute) parameterValue.HttpExtensionAttribute).Required)
+                                    {
+                                        throw new ParameterRequiredException($"Form files are required", null, parameterName, httpRequest.HttpContext);
+                                    }
+
+                                    AssignFormFileCollection(httpRequest.Form.Files, parameterValue);
+                                }
                                 else if(((HttpFormAttribute)parameterValue.HttpExtensionAttribute).Required)
                                     throw new ParameterRequiredException($"Form field '{formFieldName}' is required", null, parameterName, httpRequest.HttpContext);
                             }
@@ -82,11 +102,61 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
             }
         }
 
+        private void AssignFormFileCollection(IFormFileCollection formFileCollection, IHttpParam param)
+        {
+            var httpParamType = param.GetType();
+            httpParamType.GetProperty(nameof(HttpParam<object>.Value))?.SetValue(param, formFileCollection);
+        }
+
+        private async Task TryAssignFormFile(IFormFile formFile, IHttpParam param, string parameterName, HttpRequest httpRequest,
+            FunctionExecutingContext functionExecutingContext)
+        {
+            var httpParamType = param.GetType();
+            var httpParamValueType = GetHttpParamValueType(param);
+
+            try
+            {
+                if (_paramValueDeserializer != null)
+                {
+                    var resultFromDeserializer = await _paramValueDeserializer.DeserializeFormFile(parameterName, 
+                        formFile, httpParamValueType, functionExecutingContext.FunctionName, httpRequest);
+                    if (resultFromDeserializer.DidDeserialize)
+                    {
+                        httpParamType.GetProperty(nameof(HttpParam<object>.Value))?.SetValue(param, resultFromDeserializer.Result);
+                        return;
+                    }
+                }
+
+                // IFormFiles are supported and directly assigned.
+                if(httpParamValueType == typeof(IFormFile))
+                    httpParamType.GetProperty(nameof(HttpParam<object>.Value))?.SetValue(param, formFile);
+                // Streams are supported.
+                else if (httpParamValueType == typeof(Stream))
+                    httpParamType.GetProperty(nameof(HttpParam<object>.Value))?.SetValue(param, formFile.OpenReadStream());
+                else
+                    throw new ParameterFormatConversionException("Only Stream and IFormFile targets are supported by the generic HttpParam", 
+                        null, parameterName, httpRequest.HttpContext);
+
+            }
+            catch (Exception e)
+            {
+                throw new ParameterFormatConversionException($"Form file assignment failed", 
+                    e, parameterName, httpRequest.HttpContext);
+            }
+        }
+
+        private Type GetHttpParamValueType(IHttpParam param)
+        {
+            var httpParamType = param.GetType();
+            var httpParamValueType = httpParamType.GetGenericArguments().First();
+            return httpParamValueType;
+        }
+
         private async Task<bool> TryAssignFromBody(Stream body, IHttpParam param, HttpRequest httpRequest, 
             FunctionExecutingContext functionExecutingContext)
         {
             var httpParamType = param.GetType();
-            var httpParamValueType = httpParamType.GetGenericArguments().First();
+            var httpParamValueType = GetHttpParamValueType(param);
             var contentType = httpRequest.ContentType;
 
             try

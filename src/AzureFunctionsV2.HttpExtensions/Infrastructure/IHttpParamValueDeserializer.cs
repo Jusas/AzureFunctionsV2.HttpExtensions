@@ -21,8 +21,7 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
         /// <param name="httpParamValueType">The target value type</param>
         /// <param name="functionName">The Function name whose parameters are being assigned</param>
         /// <param name="request">The source HttpRequest</param>
-        /// <returns>A tuple of boolean (True if did handle deserialization, false if proceeding with default serialization)
-        /// and deserialized result object values</returns>
+        /// <returns>The deserialization operation result</returns>
         Task<DeserializerResult> DeserializeBodyParameter(Stream body, Type httpParamValueType, string functionName, 
             HttpRequest request);
 
@@ -34,8 +33,7 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
         /// <param name="httpParamValueType">The target value type</param>
         /// <param name="functionName">The Function name whose parameters are being assigned</param>
         /// <param name="request">The source HttpRequest</param>
-        /// <returns>A tuple of boolean (True if did handle deserialization, false if proceeding with default serialization)
-        /// and deserialized result object values</returns>
+        /// <returns>The deserialization operation result</returns>
         Task<DeserializerResult> DeserializeHeaderParameter(string headerName, StringValues headerValue, Type httpParamValueType, 
             string functionName, HttpRequest request);
 
@@ -47,8 +45,7 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
         /// <param name="httpParamValueType">The target value type</param>
         /// <param name="functionName">The Function name whose parameters are being assigned</param>
         /// <param name="request">The source HttpRequest</param>
-        /// <returns>A tuple of boolean (True if did handle deserialization, false if proceeding with default serialization)
-        /// and deserialized result object values</returns>
+        /// <returns>The deserialization operation result</returns>
         Task<DeserializerResult> DeserializeFormParameter(string formParameterName, StringValues formParameterValue, Type httpParamValueType,
             string functionName, HttpRequest request);
 
@@ -60,10 +57,21 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
         /// <param name="httpParamValueType">The target value type</param>
         /// <param name="functionName">The Function name whose parameters are being assigned</param>
         /// <param name="request">The source HttpRequest</param>
-        /// <returns>A tuple of boolean (True if did handle deserialization, false if proceeding with default serialization)
-        /// and deserialized result object values</returns>
+        /// <returns>The deserialization operation result</returns>
         Task<DeserializerResult> DeserializeQueryParameter(string queryParameterName, StringValues queryParameterValue, Type httpParamValueType,
             string functionName, HttpRequest request);
+
+        /// <summary>
+        /// This method should deserialize a form file parameter value to the target type.
+        /// </summary>
+        /// <param name="fileParameterName">The form file parameter name</param>
+        /// <param name="formFile">The IFormFile object that contains the data</param>
+        /// <param name="httpParamValueType">The target value type</param>
+        /// <param name="functionName">The Function name whose parameters are being assigned</param>
+        /// <param name="request">The source HttpRequest</param>
+        /// <returns>The deserialization operation result</returns>
+        Task<DeserializerResult> DeserializeFormFile(string fileParameterName, IFormFile formFile,
+            Type httpParamValueType, string functionName, HttpRequest request);
     }
 
     public class DeserializerResult
@@ -81,7 +89,15 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
             DidDeserialize = didDeserialize;
         }
 
+        /// <summary>
+        /// Set to true if this deserializer did or wants to handle deserialization,
+        /// false if we should still proceed with default serialization after this deserializer was run.
+        /// </summary>
         public bool DidDeserialize { get; }
+
+        /// <summary>
+        /// The resulting deserialized object.
+        /// </summary>
         public object Result { get; }
     }
 }

@@ -11,6 +11,7 @@ using AzureFunctionsV2.HttpExtensions.Tests.Helpers;
 using AzureFunctionsV2.HttpExtensions.Tests.Mocks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
@@ -37,7 +38,8 @@ namespace AzureFunctionsV2.HttpExtensions.Tests
                 new CancellationToken());
 
             // Assert
-            Assert.Equal("John", formParam.Value);
+            string formParamValue = formParam.Value;
+            Assert.Equal("John", formParamValue);
 
         }
 
@@ -159,5 +161,52 @@ namespace AzureFunctionsV2.HttpExtensions.Tests
             bodyParam.Value.Should().BeEquivalentTo(arrayInputObject);
 
         }
+
+        [Fact]
+        public async Task Should_assign_FormAttributed_param_value_from_Request_Form_Files()
+        {
+            // Arrange
+            // Two cases: IFormFile and Stream
+            var mockedFunctionRequestContext = new MockedFunctionRequestContext();
+            var formParam1 = mockedFunctionRequestContext.AddFormHttpParam<IFormFile>("file1");
+            var formParam2 = mockedFunctionRequestContext.AddFormHttpParam<Stream>("file2");
+
+            MemoryStream mockFileStream1 = new MemoryStream();
+            var mockDataBytes1 = new byte[] {1, 2, 3};
+            mockFileStream1.Write(mockDataBytes1);
+            mockFileStream1.Seek(0, SeekOrigin.Begin);
+
+            MemoryStream mockFileStream2 = new MemoryStream();
+            var mockDataBytes2 = new byte[] { 4, 5, 6 };
+            mockFileStream2.Write(mockDataBytes2);
+            mockFileStream2.Seek(0, SeekOrigin.Begin);
+
+            FormFileCollection formFileCollection = new FormFileCollection()
+            {
+                new FormFile(mockFileStream1, 0, mockFileStream1.Length, "file1", "test1.txt"),
+                new FormFile(mockFileStream2, 0, mockFileStream2.Length, "file2", "test2.txt"),
+            };            
+            mockedFunctionRequestContext.HttpRequest.Form = new FormCollection(new Dictionary<string, StringValues>(), formFileCollection);
+
+            var httpParamAssignmentFilter = new HttpParamAssignmentFilter(mockedFunctionRequestContext.RequestStoreMock.Object, null);
+
+            // Act
+            await httpParamAssignmentFilter.OnExecutingAsync(mockedFunctionRequestContext.FunctionExecutingContext,
+                new CancellationToken());
+
+            // Assert
+            Assert.NotNull(formParam1.Value);
+            var resultBuffer1 = new byte[mockDataBytes1.Length];
+            formParam1.Value.OpenReadStream().Read(resultBuffer1, 0, resultBuffer1.Length);
+            mockDataBytes1.Should().BeEquivalentTo(resultBuffer1);
+            Assert.Equal("test1.txt", formParam1.Value.FileName);
+
+            Assert.NotNull(formParam2.Value);
+            var resultBuffer2 = new byte[mockDataBytes2.Length];
+            formParam2.Value.Read(resultBuffer2, 0, resultBuffer2.Length);
+            mockDataBytes2.Should().BeEquivalentTo(resultBuffer2);
+
+        }
+
     }
 }

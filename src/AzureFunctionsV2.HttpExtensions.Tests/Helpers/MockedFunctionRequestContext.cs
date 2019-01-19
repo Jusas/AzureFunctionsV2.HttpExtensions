@@ -41,6 +41,7 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.Helpers
             return arg;
         }
 
+
         public HttpParam<T> AddBodyHttpParam<T>(string argumentName)
         {
             var attribute = new HttpBodyAttribute();
