@@ -9,6 +9,10 @@ using Microsoft.Extensions.Logging;
 
 namespace AzureFunctionsV2.HttpExtensions.Infrastructure
 {
+    /// <summary>
+    /// Exception filter to enable customizing responses when the Function throws
+    /// an exception. Invokes the registered <see cref="IHttpExceptionHandler"/> implementation.
+    /// </summary>
     public class HttpExtensionsExceptionFilter : IFunctionExceptionFilter
     {
         private static IHttpExceptionHandler _httpExceptionHandler;
@@ -26,6 +30,7 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
             var httpContext = _httpRequestStore.Get(exceptionContext.FunctionInstanceId)?.HttpContext;
             if(_httpExceptionHandler != null)
                 await _httpExceptionHandler.HandleException(exceptionContext, httpContext);
+            _httpRequestStore.Remove(exceptionContext.FunctionInstanceId);
         }
     }
 }

@@ -9,11 +9,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "01 Core", "01 Core", "{42FF
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "02 Tests", "02 Tests", "{5191C2F7-F6CD-4B75-B835-425CA894BD88}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureFunctionsV2.HttpExtensions.Tests.FunctionApp", "AzureFunctionsV2.HttpExtensions.Tests.FunctionApp\AzureFunctionsV2.HttpExtensions.Tests.FunctionApp.csproj", "{2A5B60E8-F3C2-486D-BCD8-09910D08AC30}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionsV2.HttpExtensions.Tests.FunctionApp", "AzureFunctionsV2.HttpExtensions.Tests.FunctionApp\AzureFunctionsV2.HttpExtensions.Tests.FunctionApp.csproj", "{2A5B60E8-F3C2-486D-BCD8-09910D08AC30}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureFunctionsV2.HttpExtensions.Tests", "AzureFunctionsV2.HttpExtensions.Tests\AzureFunctionsV2.HttpExtensions.Tests.csproj", "{790D3638-1356-4135-A4CC-3B987B0F2009}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionsV2.HttpExtensions.Tests", "AzureFunctionsV2.HttpExtensions.Tests\AzureFunctionsV2.HttpExtensions.Tests.csproj", "{790D3638-1356-4135-A4CC-3B987B0F2009}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureFunctionsV2.HttpExtensions.Tests.FunctionApp.Startup", "AzureFunctionsV2.HttpExtensions.Tests.FunctionApp.Startup\AzureFunctionsV2.HttpExtensions.Tests.FunctionApp.Startup.csproj", "{24B510EE-69A6-4404-B30E-F95EF640E4C2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionsV2.HttpExtensions.Tests.FunctionApp.Startup", "AzureFunctionsV2.HttpExtensions.Tests.FunctionApp.Startup\AzureFunctionsV2.HttpExtensions.Tests.FunctionApp.Startup.csproj", "{24B510EE-69A6-4404-B30E-F95EF640E4C2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03 Examples", "03 Examples", "{FF3921F3-F04E-42B2-A8D0-F757051DEB76}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureFunctionsV2.HttpExtensions.Examples.FunctionApp", "AzureFunctionsV2.HttpExtensions.Examples.FunctionApp\AzureFunctionsV2.HttpExtensions.Examples.FunctionApp.csproj", "{B584E208-9F6A-47A7-996A-07F818A373C9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,6 +41,10 @@ Global
 		{24B510EE-69A6-4404-B30E-F95EF640E4C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{24B510EE-69A6-4404-B30E-F95EF640E4C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{24B510EE-69A6-4404-B30E-F95EF640E4C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B584E208-9F6A-47A7-996A-07F818A373C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B584E208-9F6A-47A7-996A-07F818A373C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B584E208-9F6A-47A7-996A-07F818A373C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B584E208-9F6A-47A7-996A-07F818A373C9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -46,6 +54,7 @@ Global
 		{2A5B60E8-F3C2-486D-BCD8-09910D08AC30} = {5191C2F7-F6CD-4B75-B835-425CA894BD88}
 		{790D3638-1356-4135-A4CC-3B987B0F2009} = {5191C2F7-F6CD-4B75-B835-425CA894BD88}
 		{24B510EE-69A6-4404-B30E-F95EF640E4C2} = {5191C2F7-F6CD-4B75-B835-425CA894BD88}
+		{B584E208-9F6A-47A7-996A-07F818A373C9} = {FF3921F3-F04E-42B2-A8D0-F757051DEB76}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F6DF2335-7459-442B-84FE-E0605494D34F}

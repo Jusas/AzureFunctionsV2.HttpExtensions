@@ -8,6 +8,10 @@ using Microsoft.Azure.WebJobs.Host;
 
 namespace AzureFunctionsV2.HttpExtensions.Infrastructure
 {
+    /// <summary>
+    /// The default implementation of <see cref="IHttpExceptionHandler"/>.
+    /// Invokes the <see cref="IHttpResponseErrorFormatter"/> upon calling HandleException.
+    /// </summary>
     public class DefaultHttpExceptionHandler : IHttpExceptionHandler
     {
         protected IHttpResponseErrorFormatter _errorFormatter;

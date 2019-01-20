@@ -6,6 +6,9 @@ using Microsoft.Azure.WebJobs.Host.Config;
 
 namespace AzureFunctionsV2.HttpExtensions.Extensions
 {
+    /// <summary>
+    /// The config provider that registers the different <see cref="HttpSourceAttribute"/> bindings.
+    /// </summary>
     public class HttpAttributeExtensionsConfigProvider : IExtensionConfigProvider
     {
         public HttpAttributeExtensionsConfigProvider()

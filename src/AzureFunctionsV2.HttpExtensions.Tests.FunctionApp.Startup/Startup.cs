@@ -3,6 +3,7 @@ using AzureFunctionsV2.HttpExtensions.Tests.FunctionApp.Startup;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 [assembly: WebJobsStartup(typeof(Startup), "MyStartup")]
 
@@ -14,8 +15,9 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.FunctionApp.Startup
     {
         public void Configure(IWebJobsBuilder builder)
         {
-            builder.Services.AddSingleton<IHttpExceptionHandler, DefaultHttpExceptionHandler>();
-            builder.Services.AddSingleton<IHttpResponseErrorFormatter, DefaultHttpResponseErrorFormatter>();
+            // builder.Services.Replace(ServiceDescriptor.Singleton<IHttpExceptionHandler, DefaultHttpExceptionHandler>());
+            // builder.Services.AddSingleton<IHttpExceptionHandler, DefaultHttpExceptionHandler>();
+            // builder.Services.AddSingleton<IHttpResponseErrorFormatter, DefaultHttpResponseErrorFormatter>();
         }
     }
 }

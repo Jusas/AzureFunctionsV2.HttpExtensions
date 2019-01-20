@@ -15,6 +15,11 @@ using Newtonsoft.Json;
 
 namespace AzureFunctionsV2.HttpExtensions.Infrastructure
 {
+    /// <summary>
+    /// The <see cref="IFunctionInvocationFilter"/> implementation which runs deserialization and assigns
+    /// the <see cref="HttpParam{T}"/> values from the source <see cref="HttpRequest"/> using the
+    /// <see cref="FunctionExecutingContext.Arguments"/> to gain access to the HttpRequest and the HttpParams.
+    /// </summary>
     public class HttpParamAssignmentFilter : IFunctionFilter, IFunctionInvocationFilter
     {
         private IHttpRequestStore _httpRequestStore;
@@ -26,6 +31,16 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
             _paramValueDeserializer = paramValueDeserializer;
         }
 
+        /// <summary>
+        /// This is where most of the magic happens. This runs just before the Function gets executed.
+        /// At this stage we only have empty value holders (HttpParams), but we get access to the
+        /// HttpRequest from the context Arguments, as well as the access to all the HttpParams.
+        /// This enables us to grab the values from the HttpRequest, run any deserialization we may
+        /// want, and assign the values to the HttpParams.
+        /// </summary>
+        /// <param name="executingContext"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task OnExecutingAsync(FunctionExecutingContext executingContext, CancellationToken cancellationToken)
         {
             if (executingContext.Arguments.Values.Where(x => x != null).FirstOrDefault(
@@ -39,7 +54,6 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
                     {
                         if (parameterValue.HttpExtensionAttribute != null)
                         {
-                            // todo: what about files?
                             var attributeType = parameterValue.HttpExtensionAttribute.GetType();
 
                             if (attributeType == typeof(HttpBodyAttribute))
@@ -182,6 +196,8 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
                 }
 
                 // If no custom deserialization, proceed with the supported content deserialization.
+
+                // Support simple XML to POCO deserialization.
                 if (contentType.ToLowerInvariant().EndsWith("/xml", StringComparison.OrdinalIgnoreCase))
                 {
                     if (body == null)
@@ -194,6 +210,7 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
                     var deserializedValue = xmlSerializer.Deserialize(body);
                     httpParamType.GetProperty(nameof(HttpParam<object>.Value))?.SetValue(param, deserializedValue);
                 }
+                // Support JSON to POCO (or any type) deserialization.
                 else if (contentType.ToLowerInvariant().EndsWith("/json", StringComparison.OrdinalIgnoreCase))
                 {
                     if (body == null)
@@ -209,6 +226,7 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
                         httpParamType.GetProperty(nameof(HttpParam<object>.Value))?.SetValue(param, deserializedValue);
                     }
                 }
+                // Support plain text.
                 else if (contentType.ToLowerInvariant().EndsWith("text/plain", StringComparison.OrdinalIgnoreCase))
                 {
                     if (body == null)
@@ -273,10 +291,13 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
                 }
             }
 
+            // Support for deserializing lists/arrays into enumerables. If StringValues contains multiple values, and the
+            // HttpParam type happens to be an enumberable like a List<T> or an array, we try to deserialize it to such.
             if (value.Count > 0 && typeof(IEnumerable).IsAssignableFrom(httpParamValueType) && httpParamValueType != typeof(string))
             {
                 TryAssignFromMultiStringValues(value, param, parameterName, httpRequest);
             }
+            // If target HttpParam type is not enumerable or is a string, we'll just try to deserialize/assign it.
             else if (!typeof(IEnumerable).IsAssignableFrom(httpParamValueType) || httpParamValueType == typeof(string))
             {
                 try
@@ -294,6 +315,13 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
             }
         }
 
+        /// <summary>
+        /// Tries to convert a StringValues object into an array or List.
+        /// </summary>
+        /// <param name="stringValues"></param>
+        /// <param name="param"></param>
+        /// <param name="parameterName"></param>
+        /// <param name="httpRequest"></param>
         private void TryAssignFromMultiStringValues(StringValues stringValues, IHttpParam param, string parameterName, HttpRequest httpRequest)
         {
             try
@@ -348,10 +376,18 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
             
         }
 
-
+        /// <summary>
+        /// Once the Function has been executed, we'll clean up the HttpRequest from our request store.
+        /// Do not remove it in case the Function run failed; this gets executed before the exception
+        /// filter and it still needs it for its own purposes.
+        /// </summary>
+        /// <param name="executedContext"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task OnExecutedAsync(FunctionExecutedContext executedContext, CancellationToken cancellationToken)
         {
-            _httpRequestStore.Remove(executedContext.FunctionInstanceId);
+            if(executedContext.FunctionResult.Succeeded)
+                _httpRequestStore.Remove(executedContext.FunctionInstanceId);
         }
     }
 }

@@ -74,8 +74,14 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
             Type httpParamValueType, string functionName, HttpRequest request);
     }
 
+    /// <summary>
+    /// The deserialization result object.
+    /// </summary>
     public class DeserializerResult
     {
+        /// <summary>
+        /// Returns a DeserializerResult where DidSerialize is false.
+        /// </summary>
         public static DeserializerResult DidNotDeserialize => new DeserializerResult(false);
 
         public DeserializerResult(bool didDeserialize, object result)

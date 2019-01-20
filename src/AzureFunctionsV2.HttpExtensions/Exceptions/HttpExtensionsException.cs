@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace AzureFunctionsV2.HttpExtensions.Exceptions
 {
+    /// <summary>
+    /// The parent class for custom exceptions.
+    /// </summary>
     public abstract class HttpExtensionsException : Exception
     {
         public HttpContext HttpContext { get; }

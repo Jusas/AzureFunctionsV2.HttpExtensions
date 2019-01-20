@@ -17,6 +17,8 @@ namespace AzureFunctionsV2.HttpExtensions
             builder.Services.AddSingleton<IFunctionFilter, HttpParamAssignmentFilter>();
             builder.Services.AddSingleton<IFunctionFilter, HttpExtensionsExceptionFilter>();
             builder.Services.AddSingleton<IHttpRequestStore, HttpRequestStore>();
+            builder.Services.AddSingleton<IHttpExceptionHandler, DefaultHttpExceptionHandler>();
+            builder.Services.AddSingleton<IHttpResponseErrorFormatter, DefaultHttpResponseErrorFormatter>();
         }
     }
 }

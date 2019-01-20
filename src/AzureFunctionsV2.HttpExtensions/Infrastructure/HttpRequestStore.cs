@@ -6,6 +6,10 @@ using Microsoft.AspNetCore.Http;
 
 namespace AzureFunctionsV2.HttpExtensions.Infrastructure
 {
+    /// <summary>
+    /// Implementation of the <see cref="IHttpRequestStore"/>.
+    /// Stores HttpRequests in a <see cref="ConcurrentDictionary{T,T}"/>.
+    /// </summary>
     public class HttpRequestStore : IHttpRequestStore
     {
         private ConcurrentDictionary<Guid, HttpRequest> _httpRequests = new ConcurrentDictionary<Guid, HttpRequest>();
