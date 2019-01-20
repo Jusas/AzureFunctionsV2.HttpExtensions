@@ -32,5 +32,10 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
         {
             return param.Value;
         }
+
+        public override string ToString()
+        {
+            return Value?.ToString() ?? "null";
+        }
     }
 }

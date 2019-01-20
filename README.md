@@ -1,38 +1,28 @@
 # Azure Functions HTTP Extensions
 
-## Note! Under construction, not ready for use!
+[![Wiki](https://img.shields.io/badge/docs-in%20wiki-green.svg?style=flat)](https://github.com/Jusas/AzureFunctionsV2.HttpExtensions/wiki)
 
-This library adds useful extensions to HTTP triggered functions. It allows you to
+![Logo](assets/logo.png)
+
+
+This C# library extends the Azure Functions HTTP Trigger and adds useful extensions to 
+make working with HTTP requests more fluent. It allows you to
 add HTTP parameters from headers, query parameters, body and form fields directly
 to the function signature. It also adds some boilerplate code to take advantage of
 Function Filters in v2 Functions, allowing you to specify cross-cutting Exception 
 handling tasks combined with an overridable error response formatter.
 
-## How?
-
-By using Binding attributes it's possible to create Function parameters
-that act as placeholders for the HttpRequest parameters, which are then assigned 
-the proper values just before running the Function using Function Filters.
-
-The caveat is that it's necessary to use a container (HttpParam<>) for the parameters
-because the parameter binding happens before we can get access to the HttpRequest. The
-values get bound kind of too early for this to work, but we save the day by having 
-access to both the placeholder containers and the HttpRequest upon the Function Filter
-running phase, which gets run just before the function gets called so we may assign
-the values to each HttpParam's Value property there.
-
-## Some samples
-
-### Function signature
+### Example usage
 
 ```C#
 [FunctionName("TestFunction")]
 public static async Task<IActionResult> TestFunction (
-    [HttpTrigger(AuthorizationLevel.Function, "get", Route = "mymethod/{somestring}")] HttpRequest req,
+    [HttpTrigger(AuthorizationLevel.Function, "post", Route = "mymethod/{somestring}")] HttpRequest req,
     string somestring,
     [HttpQuery(Required = true)]HttpParam<string> stringParam,
     [HttpQuery]HttpParam<List<int>> intParams,
     [HttpQuery]HttpParam<TestEnum> enumParam,
+    [HttpBody]HttpParam<MyClass> myBodyObject,
     [HttpHeader(Name = "x-my-header")]HttpParam<string> customHeader,
     ILogger log)
 {
@@ -46,10 +36,9 @@ public static async Task<IActionResult> TestFunction (
 }
 ```
 
-### Error response
+### Error responses
 
-Assuming we registered the default implementation of IHttpExceptionHandler and the above function was called 
-with improper values in intParams, the function returns 400, with JSON content:
+Assuming we're using the default implementation of __IHttpExceptionHandler__ and the above function was called with improper values in intParams, the function returns 400, with JSON content:
 
 ```
 HTTP/1.1 400 Bad Request
@@ -63,5 +52,38 @@ Transfer-Encoding: chunked
   "parameter": "intParams"
 }
 ```
+
+This functionality is provided by the exception filter.
+
+Further examples can be found from the example project __AzureFunctionsV2.HttpExtensions.Examples.FunctionApp__.
+
+
+## Features
+
+- Enables you to define Function signatures similar to ASP.NET Controller conventions
+- Automatically deserializes objects, lists and arrays, supporting JSON and XML content out of the box
+- Provides basic input validation via JSON deserializer
+- Provides an exception filter, allowing more control over responses
+- Allows overriding default deserialization methods and exception handling with custom behaviour
+
+## Documentation
+
+The project comes with an example project in the sources (__AzureFunctionsV2.HttpExtensions.Examples.FunctionApp__) as well as with some Wiki documentation. Plese check the Wiki, hopefully it'll answer your questions before opening an issue.
+
+## How was this made?
+
+By using Binding attributes it's possible to create Function parameters
+that act as placeholders for the HttpRequest parameters, which are then assigned 
+the proper values just before running the Function using Function Filters.
+
+The caveat is that it's necessary to use a container (HttpParam<>) for the parameters
+because the parameter binding happens before we can get access to the HttpRequest. The
+values get bound kind of too early for this to work, but we save the day by having 
+access to both the placeholder containers and the HttpRequest upon the Function Filter
+running phase, which gets run just before the function gets called so we may assign
+the values to each HttpParam's Value property there.
+
+It's worth noticing that the Function Filters are a somewhat new feature and have been marked as obsolete - _however they're not obsolete, they have only been marked obsolete due to the team not having fully finished the features to consider them complete._ (see https://github.com/Azure/azure-webjobs-sdk/issues/1284)
+
 
 
