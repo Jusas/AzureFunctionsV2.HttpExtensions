@@ -14,11 +14,19 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace AzureFunctionsV2.HttpExtensions.Examples.FunctionApp
 {
     public static class UserAPI
     {
+        public enum UserRole
+        {
+            Sales,
+            Manufacturing,
+            ItSupport
+        }
+
         public class NewUser
         {
             [JsonRequired]
@@ -28,6 +36,8 @@ namespace AzureFunctionsV2.HttpExtensions.Examples.FunctionApp
             public int Age { get; set; }
             [JsonRequired]
             public bool IsAdmin { get; set; }
+            [JsonRequired]
+            public UserRole Role { get; set; }
         }
 
         public class User : NewUser
@@ -58,8 +68,11 @@ namespace AzureFunctionsV2.HttpExtensions.Examples.FunctionApp
         }
 
         /// <summary>
-        /// Returns a list of users, with an optional query parameter which sets whether
+        /// Returns a list of users, with optional query params:
+        /// "onlyWithImage" query parameter which sets whether
         /// you only want users that have uploaded their image.
+        /// "onlyRoles" is an array of enum values that sets
+        /// which user roles to include in the results.
         /// </summary>
         /// <param name="req"></param>
         /// <param name="id"></param>
@@ -69,10 +82,19 @@ namespace AzureFunctionsV2.HttpExtensions.Examples.FunctionApp
         public static async Task<IActionResult> GetUsers(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "users")] HttpRequest req,
             [HttpQuery]HttpParam<bool> onlyWithImage,
+            [HttpQuery]HttpParam<UserRole[]> onlyRoles,
             ILogger log)
         {
+            // For global conversions;
+            //JsonConvert.DefaultSettings = () => new JsonSerializerSettings()
+            //{
+            //    Converters = new List<JsonConverter>() { new StringEnumConverter(true) }
+            //};
+
             log.LogInformation(nameof(GetUser));
             var result = onlyWithImage.Value ? _users.Where(x => !string.IsNullOrEmpty(x.ImageBase64)) : _users;
+            if (onlyRoles.Value != null && onlyRoles.Value.Length > 0)
+                result = result.Where(x => onlyRoles.Value.Contains(x.Role));
             return new OkObjectResult(result);
         }
 
