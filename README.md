@@ -69,7 +69,7 @@ Further examples can be found from the example project __AzureFunctionsV2.HttpEx
 
 ## Documentation
 
-The project comes with an example project in the sources (__AzureFunctionsV2.HttpExtensions.Examples.FunctionApp__) as well as with some Wiki documentation. Please check the Wiki, hopefully it'll answer your questions before opening an issue.
+The project comes with an example project in the sources [AzureFunctionsV2.HttpExtensions.Examples.FunctionApp](https://github.com/Jusas/AzureFunctionsV2.HttpExtensions/tree/master/src/AzureFunctionsV2.HttpExtensions.Examples.FunctionApp) as well as with some Wiki documentation. Please check the Wiki, hopefully it'll answer your questions before opening an issue.
 
 ## How was this made?
 
