@@ -9,8 +9,9 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
 {
     /// <summary>
     /// Implementing this interface and registering this to the service collection as singleton from startup code:
-    /// <example>builder.Services.Replace(ServiceDescriptor.Singleton&lt;IHttpExceptionHandler, TImplementation&gt;()</example>
-    /// will use the error formatter when writing error responses. By default the <see cref="DefaultHttpExceptionHandler"/> is used.
+    /// <example>builder.Services.Replace(ServiceDescriptor.Singleton&lt;IHttpExceptionHandler, TImplementation&gt;())</example>
+    /// will use the exception handler when an exception is thrown inside the Function.
+    /// By default the <see cref="DefaultHttpExceptionHandler"/> is used.
     /// </summary>
     public interface IHttpExceptionHandler
     {

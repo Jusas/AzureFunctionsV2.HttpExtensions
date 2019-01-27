@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>AzureFunctionsV2.HttpExtensions</id>
+    <version>1.0.0</version>
+    <authors>Jussi Saarivirta</authors>
+    <owners>Jussi Saarivirta</owners>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <license type="expression">MIT</license>
+    <projectUrl>https://github.com/Jusas/AzureFunctionsV2.HttpExtensions</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/Jusas/AzureFunctionsV2.HttpExtensions/master/assets/logo.png</iconUrl>
+    <description>Improves the Azure Functions HTTP Trigger experience by extending the infrastructure around it, allowing to define request parameters in the function signature and implementing boilerplate like exception filters.</description>
+    <copyright>(c) 2019 Jussi Saarivirta</copyright>
+    <tags>Azure Functions</tags>
+    <repository type="Git" url="https://github.com/Jusas/AzureFunctionsV2.HttpExtensions" />
+    <dependencies>
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="Microsoft.Azure.WebJobs" version="3.0.3" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Azure.WebJobs.Extensions" version="3.0.1" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Azure.WebJobs.Extensions.Http" version="3.0.1" exclude="Build,Analyzers" />
+        <dependency id="Newtonsoft.Json" version="11.0.2" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

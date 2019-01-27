@@ -2,6 +2,17 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Jussi Saarivirta</Authors>
+    <Description>Improves the Azure Functions HTTP Trigger experience by extending the infrastructure around it, allowing to define request parameters in the function signature and implementing boilerplate like exception filters.</Description>
+    <Copyright>(c) 2019 Jussi Saarivirta</Copyright>
+    <PackageLicenseUrl>https://aka.ms/deprecateLicenseUrl</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/Jusas/AzureFunctionsV2.HttpExtensions</PackageProjectUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/Jusas/AzureFunctionsV2.HttpExtensions/master/assets/logo.png</PackageIconUrl>
+    <RepositoryUrl>https://github.com/Jusas/AzureFunctionsV2.HttpExtensions</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageTags>Azure Functions</PackageTags>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <ItemGroup>
