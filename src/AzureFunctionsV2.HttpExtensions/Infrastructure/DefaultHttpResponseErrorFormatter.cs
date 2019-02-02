@@ -67,6 +67,36 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
                 return;
             }
 
+            var httpAuthenticationException = exceptionContext.Exception as HttpAuthenticationException
+                                          ?? exceptionContext.Exception.InnerException as HttpAuthenticationException;
+
+            if (httpAuthenticationException != null)
+            {
+                response.StatusCode = 401;
+                response.Headers.Add("Content-Type", "application/json");
+                errorObject.Add("message", OutputRecursiveExceptionMessages
+                    ? GetExceptionMessageRecursive(httpAuthenticationException)
+                    : httpAuthenticationException.Message);
+                await response.WriteAsync(JsonConvert.SerializeObject(errorObject));
+
+                return;
+            }
+
+            var httpAuthorizationException = exceptionContext.Exception as HttpAuthorizationException
+                                              ?? exceptionContext.Exception.InnerException as HttpAuthorizationException;
+
+            if (httpAuthorizationException != null)
+            {
+                response.StatusCode = 403;
+                response.Headers.Add("Content-Type", "application/json");
+                errorObject.Add("message", OutputRecursiveExceptionMessages
+                    ? GetExceptionMessageRecursive(httpAuthorizationException)
+                    : httpAuthorizationException.Message);
+                await response.WriteAsync(JsonConvert.SerializeObject(errorObject));
+
+                return;
+            }
+
             response.StatusCode = 500;
             response.Headers.Add("Content-Type", "application/json");
             errorObject.Add("message", OutputRecursiveExceptionMessages 

@@ -1,4 +1,5 @@
 ﻿using AzureFunctionsV2.HttpExtensions;
+using AzureFunctionsV2.HttpExtensions.Authorization;
 using AzureFunctionsV2.HttpExtensions.Infrastructure;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
@@ -19,6 +20,8 @@ namespace AzureFunctionsV2.HttpExtensions
             builder.Services.AddSingleton<IHttpRequestStore, HttpRequestStore>();
             builder.Services.AddSingleton<IHttpExceptionHandler, DefaultHttpExceptionHandler>();
             builder.Services.AddSingleton<IHttpResponseErrorFormatter, DefaultHttpResponseErrorFormatter>();
+
+            builder.Services.AddSingleton<IFunctionFilter, JwtHttpAuthorizationFilter>();
         }
     }
 }
