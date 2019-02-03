@@ -30,8 +30,8 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.JwtAuthentication
             Should_get_and_use_config_from_OIDC_endpoint_when_OpenIdConnectJwtValidationParameters_is_used()
         {
             // Arrange
-            var config = new Mock<IOptions<JwtAuthenticatorOptions>>();
-            config.SetupGet(opts => opts.Value).Returns(new JwtAuthenticatorOptions()
+            var config = new Mock<IOptions<JwtAuthenticationOptions>>();
+            config.SetupGet(opts => opts.Value).Returns(new JwtAuthenticationOptions()
             {
                 TokenValidationParameters = new OpenIdConnectJwtValidationParameters()
                 {

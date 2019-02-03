@@ -20,7 +20,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
         private readonly IConfigurationManager<OpenIdConnectConfiguration> _manager;
         private ISecurityTokenValidator _handler;
 
-        public JwtAuthenticator(IOptions<JwtAuthenticatorOptions> config, 
+        public JwtAuthenticator(IOptions<JwtAuthenticationOptions> config, 
             ISecurityTokenValidator jwtSecurityTokenHandler,
             IConfigurationManager<OpenIdConnectConfiguration> configurationManager)
         {

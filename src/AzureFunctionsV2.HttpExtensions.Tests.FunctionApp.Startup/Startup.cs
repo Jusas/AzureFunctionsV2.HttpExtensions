@@ -39,16 +39,17 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.FunctionApp.Startup
             //    };
             //    return new JwtAuthenticator(oidcConfig);
             //});
-            //builder.Services.Configure<JwtAuthenticatorOptions>(options =>
-            //{
-            //    options.TokenValidationParameters = new OpenIdConnectJwtValidationParameters()
-            //    {
-            //        OpenIdConnectConfigurationUrl = "https://jusas-tests.eu.auth0.com/.well-known/openid-configuration",
-            //        ValidAudiences = new List<string>() { "http://localhost:7071/", "XLjNBiBCx3_CZUAK3gagLSC_PPQjBDzB" },
-            //        ValidateIssuerSigningKey = true,
-            //        NameClaimType = ClaimTypes.NameIdentifier
-            //    };
-            //});
+            builder.Services.Configure<JwtAuthenticationOptions>(options =>
+            {
+                options.TokenValidationParameters = new OpenIdConnectJwtValidationParameters()
+                {
+                    OpenIdConnectConfigurationUrl = "https://jusas-tests.eu.auth0.com/.well-known/openid-configuration",
+                    ValidAudiences = new List<string>() { "http://localhost:7071/", "XLjNBiBCx3_CZUAK3gagLSC_PPQjBDzB" },
+                    ValidateIssuerSigningKey = true,
+                    NameClaimType = ClaimTypes.NameIdentifier
+                };
+                // options.CustomAuthorizationFilter = async (principal, token) => { };
+            });
 
 
             //builder.Services.AddSingleton<IJwtAuthenticator, JwtAuthenticator>(provider =>

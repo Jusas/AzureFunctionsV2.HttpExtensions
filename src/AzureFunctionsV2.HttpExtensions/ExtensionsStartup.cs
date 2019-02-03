@@ -29,7 +29,7 @@ namespace AzureFunctionsV2.HttpExtensions
             builder.Services.AddSingleton<IFunctionFilter, JwtHttpAuthorizationFilter>();
             builder.Services.AddSingleton<IJwtAuthenticator, JwtAuthenticator>(provider =>
             {
-                var options = provider.GetService<IOptions<JwtAuthenticatorOptions>>();
+                var options = provider.GetService<IOptions<JwtAuthenticationOptions>>();
                 var configManager =
                     options?.Value.TokenValidationParameters is OpenIdConnectJwtValidationParameters oidcParams
                         ? new ConfigurationManager<OpenIdConnectConfiguration>(

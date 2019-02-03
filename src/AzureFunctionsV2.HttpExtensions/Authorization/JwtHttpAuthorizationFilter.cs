@@ -12,6 +12,7 @@ using AzureFunctionsV2.HttpExtensions.Exceptions;
 using AzureFunctionsV2.HttpExtensions.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.Options;
 
 namespace AzureFunctionsV2.HttpExtensions.Authorization
 {
@@ -21,12 +22,15 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
         private static readonly object _lock = new object();
         private IJwtAuthenticator _jwtAuthenticator;
         private IJwtAuthorizedFunctionDiscoverer _jwtAuthorizedFunctionDiscoverer;
+        private JwtAuthenticationOptions _options;
 
         public JwtHttpAuthorizationFilter(IJwtAuthenticator jwtAuthenticator,
-            IJwtAuthorizedFunctionDiscoverer jwtAuthorizedFunctionDiscoverer)
+            IJwtAuthorizedFunctionDiscoverer jwtAuthorizedFunctionDiscoverer,
+            IOptions<JwtAuthenticationOptions> config)
         {
             _jwtAuthenticator = jwtAuthenticator;
             _jwtAuthorizedFunctionDiscoverer = jwtAuthorizedFunctionDiscoverer;
+            _options = config?.Value;
         }
 
         public async Task OnExecutingAsync(FunctionExecutingContext executingContext, CancellationToken cancellationToken)
@@ -51,12 +55,19 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
 
                 var (claimsPrincipal, securityToken) = await _jwtAuthenticator.Authenticate(authToken);
 
-                if (authorizeAttribute.ClaimType != null && authorizeAttribute.ClaimValue != null)
+                if (_options?.CustomAuthorizationFilter != null)
                 {
-                    if (!claimsPrincipal.HasClaim(authorizeAttribute.ClaimType, authorizeAttribute.ClaimValue))
-                        throw new HttpAuthorizationException("User does not have the required claim");
+                    await _options.CustomAuthorizationFilter(claimsPrincipal, securityToken);
                 }
-
+                else
+                {
+                    if (authorizeAttribute.ClaimType != null && authorizeAttribute.ClaimValue != null)
+                    {
+                        if (!claimsPrincipal.HasClaim(authorizeAttribute.ClaimType, authorizeAttribute.ClaimValue))
+                            throw new HttpAuthorizationException("User does not have the required claim");
+                    }
+                }
+                
                 var jwtClaimsPrincipalFunctionArg = executingContext.Arguments.Values.FirstOrDefault(
                     x => typeof(HttpUser).IsAssignableFrom(x.GetType()))
                     as HttpUser;

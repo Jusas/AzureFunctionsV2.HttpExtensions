@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -78,7 +79,12 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.Infrastructure
             // Arrange
             var mockedFunctionRequestContext = new MockedFunctionRequestContext();
             var queryParam = mockedFunctionRequestContext.AddQueryHttpParam<string>("queryParam", "qp");
-            mockedFunctionRequestContext.HttpRequest.Query = new QueryCollection(new Dictionary<string, StringValues>() {{"qp", "hello"}});
+            var queryParamList = mockedFunctionRequestContext.AddQueryHttpParam<List<string>>("queryParamList");
+            mockedFunctionRequestContext.HttpRequest.Query = new QueryCollection(new Dictionary<string, StringValues>()
+            {
+                {"qp", "hello"},
+                {"queryParamList", new StringValues(new []{"one", "two"})}
+            });
 
             var httpParamAssignmentFilter = new HttpParamAssignmentFilter(mockedFunctionRequestContext.RequestStoreMock.Object, null);
 
@@ -88,7 +94,8 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.Infrastructure
 
             // Assert
             Assert.Equal("hello", queryParam.Value);
-
+            Assert.Equal("one", queryParamList.Value.First());
+            Assert.Equal("two", queryParamList.Value.Last());
         }
 
         public class ComplexObject
