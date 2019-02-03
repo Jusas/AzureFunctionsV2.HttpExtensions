@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using AzureFunctionsV2.HttpExtensions.Infrastructure;
 
 namespace AzureFunctionsV2.HttpExtensions.Annotations

@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AzureFunctionsV2.HttpExtensions.Exceptions;
@@ -14,6 +10,10 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace AzureFunctionsV2.HttpExtensions.Authorization
 {
+    /// <summary>
+    /// JWT Authenticator implementation.
+    /// Basically validates the JWT using the given validation parameters.    
+    /// </summary>
     public class JwtAuthenticator : IJwtAuthenticator
     {
         private TokenValidationParameters _jwtValidationParameters;
@@ -29,6 +29,13 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
             _manager = configurationManager;
         }
 
+        /// <summary>
+        /// Validates the token.
+        /// Throws an exception if validation fails, otherwise returns the resolved <see cref="ClaimsPrincipal"/>
+        /// and the validated token <see cref="SecurityToken"/>.
+        /// </summary>
+        /// <param name="jwtToken"></param>
+        /// <returns></returns>
         public async Task<(ClaimsPrincipal claimsPrincipal, SecurityToken validatedToken)> Authenticate(string jwtToken)
         {
             if(_jwtValidationParameters == null)

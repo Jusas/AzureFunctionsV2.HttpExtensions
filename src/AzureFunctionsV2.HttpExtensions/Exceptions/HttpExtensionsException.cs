@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Microsoft.AspNetCore.Http;
 
 namespace AzureFunctionsV2.HttpExtensions.Exceptions

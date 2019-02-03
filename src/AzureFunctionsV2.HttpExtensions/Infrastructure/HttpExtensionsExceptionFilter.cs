@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
-using AzureFunctionsV2.HttpExtensions.Exceptions;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 

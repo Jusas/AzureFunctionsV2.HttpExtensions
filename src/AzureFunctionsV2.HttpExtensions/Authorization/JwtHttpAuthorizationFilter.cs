@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Security.Authentication;
-using System.Security.Claims;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AzureFunctionsV2.HttpExtensions.Exceptions;
@@ -16,6 +12,9 @@ using Microsoft.Extensions.Options;
 
 namespace AzureFunctionsV2.HttpExtensions.Authorization
 {
+    /// <summary>
+    /// The JWT Authorization filter.
+    /// </summary>
     public class JwtHttpAuthorizationFilter: IFunctionFilter, IFunctionInvocationFilter
     {
         private Dictionary<string, (MethodInfo, HttpJwtAuthorizeAttribute)> _functionCache;
@@ -33,6 +32,16 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
             _options = config?.Value;
         }
 
+        /// <summary>
+        /// Checks if the called function has the <see cref="HttpJwtAuthorizeAttribute"/> attached, and if so,
+        /// tries to validate the JWT. Throws an exception
+        /// if that fails.
+        /// </summary>
+        /// <param name="executingContext"></param>
+        /// <param name="cancellationToken"></param>
+        /// <exception cref="HttpAuthenticationException"></exception>
+        /// <exception cref="HttpAuthorizationException"></exception>
+        /// <returns></returns>
         public async Task OnExecutingAsync(FunctionExecutingContext executingContext, CancellationToken cancellationToken)
         {
             if(_jwtAuthenticator == null)
@@ -55,10 +64,12 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
 
                 var (claimsPrincipal, securityToken) = await _jwtAuthenticator.Authenticate(authToken);
 
+                // Call the custom filter if one exists. It is expected to throw if authorization fails.
                 if (_options?.CustomAuthorizationFilter != null)
                 {
                     await _options.CustomAuthorizationFilter(claimsPrincipal, securityToken);
                 }
+                // Use the default claims check, if a claim is set.
                 else
                 {
                     if (authorizeAttribute.ClaimType != null && authorizeAttribute.ClaimValue != null)

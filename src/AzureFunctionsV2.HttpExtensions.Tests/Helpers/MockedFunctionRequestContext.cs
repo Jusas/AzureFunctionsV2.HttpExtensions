@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
-using System.Text;
 using AzureFunctionsV2.HttpExtensions.Annotations;
 using AzureFunctionsV2.HttpExtensions.Infrastructure;
 using AzureFunctionsV2.HttpExtensions.Tests.Mocks;

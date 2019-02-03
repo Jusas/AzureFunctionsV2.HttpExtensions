@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AzureFunctionsV2.HttpExtensions.Annotations;
 using AzureFunctionsV2.HttpExtensions.Infrastructure;
 using Microsoft.Azure.WebJobs.Host.Bindings;

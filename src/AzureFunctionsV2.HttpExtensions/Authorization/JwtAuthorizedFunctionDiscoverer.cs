@@ -2,13 +2,21 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using Microsoft.AspNetCore.Http;
 
 namespace AzureFunctionsV2.HttpExtensions.Authorization
 {
+    /// <summary>
+    /// Implementation of the authorized Function discoverer.    
+    /// </summary>
     public class JwtAuthorizedFunctionDiscoverer : IJwtAuthorizedFunctionDiscoverer
     {
+        /// <summary>
+        /// Finds Functions that have the <see cref="HttpJwtAuthorizeAttribute"/> attached.
+        /// Scans assemblies that have been loaded, specifically the ones that refer to this
+        /// assembly, and then looks for the attribute in static class static methods.
+        /// </summary>
+        /// <returns></returns>
         public Dictionary<string, (MethodInfo, HttpJwtAuthorizeAttribute)> GetFunctions()
         {
             // Find functions from the assemblies. Criteria:
