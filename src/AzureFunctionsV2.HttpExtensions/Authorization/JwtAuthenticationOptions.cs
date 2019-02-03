@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AzureFunctionsV2.HttpExtensions.Exceptions;
@@ -29,6 +30,6 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
         /// Claims checking. This function should throw a <see cref="HttpAuthorizationException"/>
         /// if the authorization fails.
         /// </summary>
-        public Func<ClaimsPrincipal, SecurityToken, Task> CustomAuthorizationFilter { get; set; }
+        public Func<ClaimsPrincipal, SecurityToken, IList<HttpJwtAuthorizeAttribute>, Task> CustomAuthorizationFilter { get; set; }
     }
 }

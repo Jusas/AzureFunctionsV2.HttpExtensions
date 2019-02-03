@@ -30,10 +30,9 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.JwtAuthentication
             var discoverer = new Mock<IJwtAuthorizedFunctionDiscoverer>();
             var method = new Mock<MethodInfo>();
             discoverer.Setup(x => x.GetFunctions()).Returns(
-                new Dictionary<string, (MethodInfo, HttpJwtAuthorizeAttribute)>()
+                new Dictionary<string, (MethodInfo, IList<HttpJwtAuthorizeAttribute>)>()
                 {
-                    // No claims.
-                    {"func", (method.Object, new HttpJwtAuthorizeAttribute())}
+                    {"func", (method.Object, new List<HttpJwtAuthorizeAttribute>() {new HttpJwtAuthorizeAttribute()})}
                 });
 
             var authFilter = new JwtHttpAuthorizationFilter(jwtAuthenticator.Object, discoverer.Object, null);
@@ -50,41 +49,7 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.JwtAuthentication
             Assert.NotNull(userParam.ClaimsPrincipal);
         }
 
-        [Fact]
-        public async Task Should_run_auth_code_for_Function_which_has_HttpJwtAuthorizeAttribute_and_claims_and_succeed()
-        {
-            // Arrange
-            var jwtAuthenticator = new Mock<IJwtAuthenticator>();
-            jwtAuthenticator.Setup(x => x.Authenticate(It.IsAny<string>())).ReturnsAsync(() =>
-            {
-                return (new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>() { new Claim("myClaim", "myValue") })), new JwtSecurityToken());
-            });
-            var discoverer = new Mock<IJwtAuthorizedFunctionDiscoverer>();
-            var method = new Mock<MethodInfo>();
-            discoverer.Setup(x => x.GetFunctions()).Returns(
-                new Dictionary<string, (MethodInfo, HttpJwtAuthorizeAttribute)>()
-                {
-                    {"func", (method.Object, new HttpJwtAuthorizeAttribute()
-                    {
-                        ClaimType = "myClaim",
-                        ClaimValue = "myValue"
-                    })}
-                });
-
-            var authFilter = new JwtHttpAuthorizationFilter(jwtAuthenticator.Object, discoverer.Object, null);
-            var mockedFunctionRequestContext = new MockedFunctionRequestContext();
-            mockedFunctionRequestContext.HttpRequest.HeaderDictionary = new HeaderDictionary(
-                new Dictionary<string, StringValues>() { { "Authorization", new StringValues("Bearer foo") } });
-            var userParam = mockedFunctionRequestContext.AddUserParam("user");
-            mockedFunctionRequestContext.CreateFunctionExecutingContextWithJustName("func");
-
-            // Act
-            await authFilter.OnExecutingAsync(mockedFunctionRequestContext.FunctionExecutingContext, CancellationToken.None);
-
-            // Assert
-            Assert.NotNull(userParam.ClaimsPrincipal);
-        }
-
+        
         [Fact]
         public async Task Should_run_custom_authorization_filter()
         {
@@ -97,20 +62,16 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.JwtAuthentication
             var discoverer = new Mock<IJwtAuthorizedFunctionDiscoverer>();
             var method = new Mock<MethodInfo>();
             discoverer.Setup(x => x.GetFunctions()).Returns(
-                new Dictionary<string, (MethodInfo, HttpJwtAuthorizeAttribute)>()
+                new Dictionary<string, (MethodInfo, IList<HttpJwtAuthorizeAttribute>)>()
                 {
-                    {"func", (method.Object, new HttpJwtAuthorizeAttribute()
-                    {
-                        ClaimType = "myClaim",
-                        ClaimValue = "myValue"
-                    })}
+                    {"func", (method.Object, new List<HttpJwtAuthorizeAttribute>() {new HttpJwtAuthorizeAttribute()})}
                 });
 
 
             var options = new Mock<IOptions<JwtAuthenticationOptions>>();
             options.SetupGet(x => x.Value).Returns(new JwtAuthenticationOptions()
             {
-                CustomAuthorizationFilter = async (principal, token) => throw new HttpAuthorizationException("custom")
+                CustomAuthorizationFilter = async (principal, token, authorizeAttrs) => throw new HttpAuthorizationException("custom")
             });
             var authFilter = new JwtHttpAuthorizationFilter(jwtAuthenticator.Object, discoverer.Object, options.Object);
             var mockedFunctionRequestContext = new MockedFunctionRequestContext();
@@ -126,40 +87,6 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.JwtAuthentication
         }
 
         [Fact]
-        public async Task Should_run_auth_code_for_Function_which_has_HttpJwtAuthorizeAttribute_and_claims_and_fail_with_missing_claims()
-        {
-            // Arrange
-            var jwtAuthenticator = new Mock<IJwtAuthenticator>();
-            jwtAuthenticator.Setup(x => x.Authenticate(It.IsAny<string>())).ReturnsAsync(() =>
-            {
-                return (new ClaimsPrincipal(), new JwtSecurityToken());
-            });
-            var discoverer = new Mock<IJwtAuthorizedFunctionDiscoverer>();
-            var method = new Mock<MethodInfo>();
-            discoverer.Setup(x => x.GetFunctions()).Returns(
-                new Dictionary<string, (MethodInfo, HttpJwtAuthorizeAttribute)>()
-                {
-                    {"func", (method.Object, new HttpJwtAuthorizeAttribute()
-                    {
-                        ClaimType = "myClaim",
-                        ClaimValue = "myValue"
-                    })}
-                });
-
-            var authFilter = new JwtHttpAuthorizationFilter(jwtAuthenticator.Object, discoverer.Object, null);
-            var mockedFunctionRequestContext = new MockedFunctionRequestContext();
-            mockedFunctionRequestContext.HttpRequest.HeaderDictionary = new HeaderDictionary(
-                new Dictionary<string, StringValues>() { { "Authorization", new StringValues("Bearer foo") } });
-            var userParam = mockedFunctionRequestContext.AddUserParam("user");
-            mockedFunctionRequestContext.CreateFunctionExecutingContextWithJustName("func");
-
-            // Act & Assert
-            await Assert.ThrowsAsync<HttpAuthorizationException>(async () => 
-                await authFilter.OnExecutingAsync(mockedFunctionRequestContext.FunctionExecutingContext, CancellationToken.None));
-
-        }
-
-        [Fact]
         public async Task Should_not_run_auth_code_for_Function_which_does_not_have_HttpJwtAuthorizeAttribute()
         {
             // Arrange
@@ -170,7 +97,7 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.JwtAuthentication
             });
             var discoverer = new Mock<IJwtAuthorizedFunctionDiscoverer>();
             discoverer.Setup(x => x.GetFunctions()).Returns(
-                new Dictionary<string, (MethodInfo, HttpJwtAuthorizeAttribute)>());
+                new Dictionary<string, (MethodInfo, IList<HttpJwtAuthorizeAttribute>)>());
 
             var authFilter = new JwtHttpAuthorizationFilter(jwtAuthenticator.Object, discoverer.Object, null);
             var mockedFunctionRequestContext = new MockedFunctionRequestContext();

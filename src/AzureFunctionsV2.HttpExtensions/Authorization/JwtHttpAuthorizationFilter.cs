@@ -17,7 +17,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
     /// </summary>
     public class JwtHttpAuthorizationFilter: IFunctionFilter, IFunctionInvocationFilter
     {
-        private Dictionary<string, (MethodInfo, HttpJwtAuthorizeAttribute)> _functionCache;
+        private Dictionary<string, (MethodInfo, IList<HttpJwtAuthorizeAttribute>)> _functionCache;
         private static readonly object _lock = new object();
         private IJwtAuthenticator _jwtAuthenticator;
         private IJwtAuthorizedFunctionDiscoverer _jwtAuthorizedFunctionDiscoverer;
@@ -47,7 +47,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
             if(_jwtAuthenticator == null)
                 throw new InvalidOperationException("JWT Authenticator has not been configured");
 
-            var (functionMethodInfo, authorizeAttribute) = GetFunction(executingContext.FunctionName);
+            var (functionMethodInfo, authorizeAttributes) = GetFunction(executingContext.FunctionName);
 
             if (functionMethodInfo != null)
             {
@@ -67,16 +67,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
                 // Call the custom filter if one exists. It is expected to throw if authorization fails.
                 if (_options?.CustomAuthorizationFilter != null)
                 {
-                    await _options.CustomAuthorizationFilter(claimsPrincipal, securityToken);
-                }
-                // Use the default claims check, if a claim is set.
-                else
-                {
-                    if (authorizeAttribute.ClaimType != null && authorizeAttribute.ClaimValue != null)
-                    {
-                        if (!claimsPrincipal.HasClaim(authorizeAttribute.ClaimType, authorizeAttribute.ClaimValue))
-                            throw new HttpAuthorizationException("User does not have the required claim");
-                    }
+                    await _options.CustomAuthorizationFilter(claimsPrincipal, securityToken, authorizeAttributes);
                 }
                 
                 var jwtClaimsPrincipalFunctionArg = executingContext.Arguments.Values.FirstOrDefault(
@@ -92,7 +83,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
         {
         }
         
-        private (MethodInfo methodInfo, HttpJwtAuthorizeAttribute authorizeAttribute) GetFunction(string functionName)
+        private (MethodInfo methodInfo, IList<HttpJwtAuthorizeAttribute> authorizeAttribute) GetFunction(string functionName)
         {
             if (_functionCache == null)
                 InitializeCache();

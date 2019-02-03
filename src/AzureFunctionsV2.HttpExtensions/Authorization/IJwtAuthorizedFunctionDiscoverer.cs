@@ -10,6 +10,6 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
     /// </summary>
     public interface IJwtAuthorizedFunctionDiscoverer
     {
-        Dictionary<string, (MethodInfo, HttpJwtAuthorizeAttribute)> GetFunctions();
+        Dictionary<string, (MethodInfo, IList<HttpJwtAuthorizeAttribute>)> GetFunctions();
     }
 }

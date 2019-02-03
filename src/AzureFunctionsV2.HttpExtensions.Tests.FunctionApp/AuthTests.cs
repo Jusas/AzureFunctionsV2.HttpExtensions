@@ -34,24 +34,6 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.FunctionApp
         }
 
         /// <summary>
-        /// Function with HttpJwtAuthorize, with a claim.
-        /// </summary>
-        /// <param name="req"></param>
-        /// <param name="user"></param>
-        /// <param name="log"></param>
-        /// <returns></returns>
-        [FunctionName("JwtAuthTest2")]
-        [HttpJwtAuthorize(ClaimType = "myClaim",
-            ClaimValue = "claimValue")]
-        public static async Task<IActionResult> JwtAuthTest2(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req,
-            [HttpJwt]HttpUser user,
-            ILogger log)
-        {
-            return new OkObjectResult("ok");
-        }
-
-        /// <summary>
         /// Function without HttpJwtAuthorize.
         /// </summary>
         /// <param name="req"></param>

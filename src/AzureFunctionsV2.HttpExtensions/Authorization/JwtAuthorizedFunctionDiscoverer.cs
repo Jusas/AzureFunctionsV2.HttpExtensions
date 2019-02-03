@@ -17,7 +17,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
         /// assembly, and then looks for the attribute in static class static methods.
         /// </summary>
         /// <returns></returns>
-        public Dictionary<string, (MethodInfo, HttpJwtAuthorizeAttribute)> GetFunctions()
+        public Dictionary<string, (MethodInfo, IList<HttpJwtAuthorizeAttribute>)> GetFunctions()
         {
             // Find functions from the assemblies. Criteria:
             // - member of static class
@@ -29,7 +29,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
                     .Where(a => a.GetReferencedAssemblies()
                         .Any(r => r.Name == Assembly.GetAssembly(this.GetType()).GetName().Name));
 
-            var functions = new Dictionary<string, (MethodInfo, HttpJwtAuthorizeAttribute)>();
+            var functions = new Dictionary<string, (MethodInfo, IList<HttpJwtAuthorizeAttribute>)>();
             foreach (var candidateAssembly in candidateAssemblies)
             {
                 var asmFunctionMethodsWithAuth = candidateAssembly.ExportedTypes
@@ -40,7 +40,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
                             p.ParameterType == typeof(HttpRequest) &&
                             p.GetCustomAttributes().Any(a => a.GetType().Name == "HttpTriggerAttribute")
                         ) &&
-                        m.GetCustomAttribute<HttpJwtAuthorizeAttribute>() != null
+                        m.GetCustomAttributes<HttpJwtAuthorizeAttribute>().Any()
                     );
                 foreach (var method in asmFunctionMethodsWithAuth)
                 {
@@ -53,8 +53,8 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
                         methodFunctionName = propInfo.GetValue(functionNameAttribute) as string ?? method.Name;
                     }
 
-                    var authorizeAttribute = method.GetCustomAttribute<HttpJwtAuthorizeAttribute>();
-                    functions.Add(methodFunctionName, (method, authorizeAttribute));
+                    var authorizeAttributes = method.GetCustomAttributes<HttpJwtAuthorizeAttribute>().ToList();
+                    functions.Add(methodFunctionName, (method, authorizeAttributes));
                 }
             }
 
