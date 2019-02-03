@@ -14,60 +14,34 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
 {
     public class JwtAuthenticator : IJwtAuthenticator
     {
-        private OpenIdConnectJwtValidationParameters _oidcJwtValidationParameters;
-        private JwtValidationParameters _jwtValidationParameters;
+        private TokenValidationParameters _jwtValidationParameters;
         private readonly ConfigurationManager<OpenIdConnectConfiguration> _manager;
         private JwtSecurityTokenHandler _handler;
 
-        public JwtAuthenticator(OpenIdConnectJwtValidationParameters parameters)
-        {
-            _oidcJwtValidationParameters = parameters;
-            _handler = new JwtSecurityTokenHandler();
-            _manager = new ConfigurationManager<OpenIdConnectConfiguration>(
-                parameters.OpenIdConnectConfigurationUrl,
-                new OpenIdConnectConfigurationRetriever());
-        }
-
-        public JwtAuthenticator(JwtValidationParameters parameters)
+        public JwtAuthenticator(TokenValidationParameters parameters)
         {
             _jwtValidationParameters = parameters;
             _handler = new JwtSecurityTokenHandler();
+            if(parameters is OpenIdConnectJwtValidationParameters oidcParams)
+                _manager = new ConfigurationManager<OpenIdConnectConfiguration>(
+                    oidcParams.OpenIdConnectConfigurationUrl,
+                    new OpenIdConnectConfigurationRetriever());
         }
 
         public async Task<(ClaimsPrincipal claimsPrincipal, SecurityToken validatedToken)> Authenticate(string jwtToken)
         {
-            SecurityToken validatedToken;
-            TokenValidationParameters parameters;
-            if (_oidcJwtValidationParameters != null)
+            if (_jwtValidationParameters is OpenIdConnectJwtValidationParameters oidcParams &&
+                _jwtValidationParameters.IssuerSigningKeys == null)
             {
                 var config = await _manager.GetConfigurationAsync();
-                parameters = new TokenValidationParameters() // TODO: don't abstract this behind _oidcJwtValidationParameters?
-                {
-                    ValidAudiences = _oidcJwtValidationParameters.ValidAudiences,
-                    ValidIssuers = new List<string>() {config.Issuer},
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKeys = config.SigningKeys,
-                    NameClaimType = ClaimTypes.NameIdentifier
-                };                
-            }
-            else
-            {
-                parameters = new TokenValidationParameters()
-                {
-                    ValidAudiences = _jwtValidationParameters.ValidAudiences,
-                    ValidIssuers = _jwtValidationParameters.ValidIssuers,
-                    ValidateIssuerSigningKey = _jwtValidationParameters.IssuerSigningKeys != null &&
-                                               _jwtValidationParameters.IssuerSigningKeys.Any()
-                        ? true
-                        : false,
-                    IssuerSigningKeys = _jwtValidationParameters.IssuerSigningKeys,
-                    NameClaimType = ClaimTypes.NameIdentifier
-                };
+                oidcParams.ValidIssuer = config.Issuer;
+                oidcParams.IssuerSigningKeys = config.SigningKeys;
             }
 
             try
             {
-                var claimsPrincipal = _handler.ValidateToken(jwtToken, parameters, out validatedToken);
+                SecurityToken validatedToken;
+                var claimsPrincipal = _handler.ValidateToken(jwtToken, _jwtValidationParameters, out validatedToken);
                 return (claimsPrincipal, validatedToken);
             }
             catch (Exception e)

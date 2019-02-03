@@ -60,31 +60,13 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
 
                 if (jwtClaimsPrincipalFunctionArg != null)
                     jwtClaimsPrincipalFunctionArg.ClaimsPrincipal = claimsPrincipal;
-
-                //var claimsPrincipal = httpContext.User;
-                //var claim = new Claim(function.Item2.ClaimType, function.Item2.ClaimValue);
-
-                //if (claimsPrincipal != null)
-                //{
-                //    var hasClaim = claimsPrincipal.HasClaim(claim.Type, claim.Value);
-                //    if (!hasClaim)
-                //        throw new AuthenticationException("User does not have the required claim");
-                //}
-                //else
-                //{
-                //    throw new AuthenticationException("User is not authenticated");
-                //}
             }
         }
 
         public async Task OnExecutedAsync(FunctionExecutedContext executedContext, CancellationToken cancellationToken)
         {
         }
-
-        private async Task VerifyBearerToken(HttpRequest request)
-        {
-        }
-
+        
         private (MethodInfo methodInfo, HttpJwtAuthorizeAttribute authorizeAttribute) GetFunction(string functionName)
         {
             if (_functionCache == null)
@@ -105,7 +87,6 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
                 // - member has a parameter with HttpRequest (with HttpTrigger attribute) in its signature
                 // - member has FunctionNameAttribute (optional, take the name from it if it has)
                 // - member has HttpAuthorizeAttribute
-
 
                 var candidateAssemblies = AppDomain.CurrentDomain.GetAssemblies()
                     .Where(a => a.GetReferencedAssemblies()
