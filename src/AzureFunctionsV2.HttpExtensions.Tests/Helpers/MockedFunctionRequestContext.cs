@@ -37,10 +37,25 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.Helpers
             HttpRequest.ContentType = "application/json";
         }
 
+        public void CreateFunctionExecutingContextWithJustName(string functionName)
+        {
+            FunctionExecutingContext = new FunctionExecutingContext(ArgumentsDictionary, new Dictionary<string, object>(),
+                FunctionContextId, functionName, MockedLogger.Object);
+        }
+
         public void GenerateExceptionContext(Exception e)
         {
             FunctionExceptionContext = new FunctionExceptionContext(Guid.Empty, "func", 
                 MockedLogger.Object, ExceptionDispatchInfo.Capture(e), new Dictionary<string, object>());
+        }
+
+        public HttpUser AddUserParam(string argumentName)
+        {
+            var arg = new HttpUser();
+            ArgumentsDictionary.Add(argumentName, arg);
+            FunctionExecutingContext = new FunctionExecutingContext(ArgumentsDictionary,
+                new Dictionary<string, object>(), FunctionContextId, "func", MockedLogger.Object);
+            return arg;
         }
 
         public HttpParam<T> AddFormHttpParam<T>(string argumentName, string alias = null, bool required = false)

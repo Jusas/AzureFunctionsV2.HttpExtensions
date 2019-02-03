@@ -16,10 +16,50 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.FunctionApp
 {
     public static class AuthTests
     {
-        [FunctionName("AuthTest")]
-        [HttpJwtAuthorize(ClaimType = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier", 
-            ClaimValue = "auth0|5c55ba2b77c9d67a41774e27")]
-        public static async Task<IActionResult> AuthTest(
+        /// <summary>
+        /// Function with HttpJwtAuthorize, with no claims.
+        /// </summary>
+        /// <param name="req"></param>
+        /// <param name="user"></param>
+        /// <param name="log"></param>
+        /// <returns></returns>
+        [FunctionName("JwtAuthTest1")]
+        [HttpJwtAuthorize]
+        public static async Task<IActionResult> JwtAuthTest1(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req,
+            [HttpJwt]HttpUser user,
+            ILogger log)
+        {
+            return new OkResult();
+        }
+
+        /// <summary>
+        /// Function with HttpJwtAuthorize, with a claim.
+        /// </summary>
+        /// <param name="req"></param>
+        /// <param name="user"></param>
+        /// <param name="log"></param>
+        /// <returns></returns>
+        [FunctionName("JwtAuthTest2")]
+        [HttpJwtAuthorize(ClaimType = "myClaim",
+            ClaimValue = "claimValue")]
+        public static async Task<IActionResult> JwtAuthTest2(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req,
+            [HttpJwt]HttpUser user,
+            ILogger log)
+        {
+            return new OkObjectResult("ok");
+        }
+
+        /// <summary>
+        /// Function without HttpJwtAuthorize.
+        /// </summary>
+        /// <param name="req"></param>
+        /// <param name="user"></param>
+        /// <param name="log"></param>
+        /// <returns></returns>
+        [FunctionName("JwtAuthTest3")]
+        public static async Task<IActionResult> JwtAuthTest3(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req,
             [HttpJwt]HttpUser user,
             ILogger log)

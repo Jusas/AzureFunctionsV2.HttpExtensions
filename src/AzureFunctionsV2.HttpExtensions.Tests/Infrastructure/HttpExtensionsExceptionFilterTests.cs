@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AzureFunctionsV2.HttpExtensions.Infrastructure;
@@ -11,7 +10,7 @@ using Microsoft.Azure.WebJobs.Host;
 using Moq;
 using Xunit;
 
-namespace AzureFunctionsV2.HttpExtensions.Tests
+namespace AzureFunctionsV2.HttpExtensions.Tests.Infrastructure
 {
     public class HttpExtensionsExceptionFilterTests
     {

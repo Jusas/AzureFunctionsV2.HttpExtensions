@@ -1,10 +1,9 @@
 using System;
 using AzureFunctionsV2.HttpExtensions.Infrastructure;
 using AzureFunctionsV2.HttpExtensions.Tests.Mocks;
-using Microsoft.AspNetCore.Http.Internal;
 using Xunit;
 
-namespace AzureFunctionsV2.HttpExtensions.Tests
+namespace AzureFunctionsV2.HttpExtensions.Tests.Infrastructure
 {
     public class HttpRequestStoreTests
     {

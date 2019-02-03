@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using AzureFunctionsV2.HttpExtensions.Exceptions;
 using AzureFunctionsV2.HttpExtensions.Infrastructure;
 using AzureFunctionsV2.HttpExtensions.Tests.Helpers;
 using Xunit;
 
-namespace AzureFunctionsV2.HttpExtensions.Tests
+namespace AzureFunctionsV2.HttpExtensions.Tests.Infrastructure
 {
     public class DefaultHttpResponseErrorFormatterTests
     {

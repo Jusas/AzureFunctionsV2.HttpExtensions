@@ -1,26 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
-using AzureFunctionsV2.HttpExtensions.Annotations;
 using AzureFunctionsV2.HttpExtensions.Exceptions;
 using AzureFunctionsV2.HttpExtensions.Infrastructure;
 using AzureFunctionsV2.HttpExtensions.Tests.Helpers;
-using AzureFunctionsV2.HttpExtensions.Tests.Mocks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
-using Microsoft.Azure.WebJobs.Host;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
-using Moq;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace AzureFunctionsV2.HttpExtensions.Tests
+namespace AzureFunctionsV2.HttpExtensions.Tests.Infrastructure
 {
     /// <summary>
     /// Tests for HttpParamAssignmentFilter.

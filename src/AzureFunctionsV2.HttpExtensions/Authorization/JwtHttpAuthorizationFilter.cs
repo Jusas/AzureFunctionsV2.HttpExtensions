@@ -17,19 +17,22 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
 {
     public class JwtHttpAuthorizationFilter: IFunctionFilter, IFunctionInvocationFilter
     {
-        private static Dictionary<string, (MethodInfo, HttpJwtAuthorizeAttribute)> _functionCache;
+        private Dictionary<string, (MethodInfo, HttpJwtAuthorizeAttribute)> _functionCache;
         private static readonly object _lock = new object();
-        private static IJwtAuthenticator _jwtAuthenticator;
+        private IJwtAuthenticator _jwtAuthenticator;
+        private IJwtAuthorizedFunctionDiscoverer _jwtAuthorizedFunctionDiscoverer;
 
-        public JwtHttpAuthorizationFilter(IJwtAuthenticator jwtAuthenticator)
+        public JwtHttpAuthorizationFilter(IJwtAuthenticator jwtAuthenticator,
+            IJwtAuthorizedFunctionDiscoverer jwtAuthorizedFunctionDiscoverer)
         {
             _jwtAuthenticator = jwtAuthenticator;
+            _jwtAuthorizedFunctionDiscoverer = jwtAuthorizedFunctionDiscoverer;
         }
 
         public async Task OnExecutingAsync(FunctionExecutingContext executingContext, CancellationToken cancellationToken)
         {
             if(_jwtAuthenticator == null)
-                throw new HttpAuthenticationException("JWT Authenticator has not been configured");
+                throw new InvalidOperationException("JWT Authenticator has not been configured");
 
             var (functionMethodInfo, authorizeAttribute) = GetFunction(executingContext.FunctionName);
 
@@ -82,46 +85,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
         {
             lock (_lock)
             {
-                // Find functions from the assemblies. Criteria:
-                // - member of static class
-                // - member has a parameter with HttpRequest (with HttpTrigger attribute) in its signature
-                // - member has FunctionNameAttribute (optional, take the name from it if it has)
-                // - member has HttpAuthorizeAttribute
-
-                var candidateAssemblies = AppDomain.CurrentDomain.GetAssemblies()
-                    .Where(a => a.GetReferencedAssemblies()
-                        .Any(r => r.Name == Assembly.GetAssembly(this.GetType()).GetName().Name));
-
-                var cache = new Dictionary<string, (MethodInfo, HttpJwtAuthorizeAttribute)>();
-                foreach (var candidateAssembly in candidateAssemblies)
-                {
-                    var asmFunctionMethodsWithAuth = candidateAssembly.ExportedTypes
-                        .Where(x => x.IsAbstract && x.IsSealed && x.IsClass)
-                        .SelectMany(x => x.GetMethods(BindingFlags.Static | BindingFlags.Public))
-                        .Where(m =>
-                            m.GetParameters().Any(p =>
-                                p.ParameterType == typeof(HttpRequest) &&
-                                p.GetCustomAttributes().Any(a => a.GetType().Name == "HttpTriggerAttribute")
-                            ) &&
-                            m.GetCustomAttribute<HttpJwtAuthorizeAttribute>() != null
-                        );
-                    foreach (var method in asmFunctionMethodsWithAuth)
-                    {
-                        var methodFunctionName = method.Name;
-                        var functionNameAttribute = method.GetCustomAttributes()
-                            .FirstOrDefault(a => a.GetType().Name == "FunctionNameAttribute");
-                        if (functionNameAttribute != null)
-                        {
-                            var propInfo = functionNameAttribute.GetType().GetProperty("Name");
-                            methodFunctionName = propInfo.GetValue(functionNameAttribute) as string ?? method.Name;
-                        }
-
-                        var authorizeAttribute = method.GetCustomAttribute<HttpJwtAuthorizeAttribute>();
-                        cache.Add(methodFunctionName, (method, authorizeAttribute));
-                    }
-                }
-
-                _functionCache = cache;
+                _functionCache = _jwtAuthorizedFunctionDiscoverer.GetFunctions();
             }
         }
 

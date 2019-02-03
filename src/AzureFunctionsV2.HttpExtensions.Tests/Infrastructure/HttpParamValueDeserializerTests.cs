@@ -15,7 +15,7 @@ using Microsoft.Extensions.Primitives;
 using Moq;
 using Xunit;
 
-namespace AzureFunctionsV2.HttpExtensions.Tests
+namespace AzureFunctionsV2.HttpExtensions.Tests.Infrastructure
 {
     /// <summary>
     /// Tests for checking that any implementation for IHttpParamValueDeserializer is utilized
