@@ -1,7 +1,7 @@
 # Azure Functions HTTP Extensions
 
 [![Wiki](https://img.shields.io/badge/docs-in%20wiki-green.svg?style=flat)](https://github.com/Jusas/AzureFunctionsV2.HttpExtensions/wiki) 
-[![Wiki](https://img.shields.io/nuget/v/AzureFunctionsV2.HttpExtensions.svg)](https://www.nuget.org/packages/AzureFunctionsV2.HttpExtensions/) 
+[![Nuget](https://img.shields.io/nuget/v/AzureFunctionsV2.HttpExtensions.svg)](https://www.nuget.org/packages/AzureFunctionsV2.HttpExtensions/) 
 
 ![Logo](assets/logo.png)
 
