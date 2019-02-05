@@ -13,9 +13,19 @@ to the function signature. It also adds some boilerplate code to take advantage 
 Function Filters in v2 Functions, allowing you to specify cross-cutting Exception 
 handling tasks combined with an overridable error response formatter.
 
+## Features
+
+- Enables you to define Function signatures similar to ASP.NET Controller conventions
+- Automatically deserializes objects, lists and arrays, supporting JSON and XML content out of the box
+- Provides basic input validation via JSON deserializer
+- Provides basic JWT-based authentication/authorization via attributes, which is also customizable
+- Provides an exception filter, allowing more control over responses
+- Allows overriding default deserialization methods and exception handling with custom behaviour
+
 ### Example usage
 
 ```C#
+[HttpJwtAuthorize]
 [FunctionName("TestFunction")]
 public static async Task<IActionResult> TestFunction (
     [HttpTrigger(AuthorizationLevel.Function, "post", Route = "mymethod/{somestring}")] HttpRequest req,
@@ -25,6 +35,7 @@ public static async Task<IActionResult> TestFunction (
     [HttpQuery]HttpParam<TestEnum> enumParam,
     [HttpBody]HttpParam<MyClass> myBodyObject,
     [HttpHeader(Name = "x-my-header")]HttpParam<string> customHeader,
+    [HttpJwt]HttpUser user,
     ILogger log)
 {
 	string blah = stringParam; // implicit operator
@@ -36,6 +47,9 @@ public static async Task<IActionResult> TestFunction (
     return new OkObjectResult("");
 }
 ```
+
+See the [wiki](https://github.com/Jusas/AzureFunctionsV2.HttpExtensions/wiki) for details on 
+the attributes and parameters.
 
 ### Error responses
 
@@ -56,20 +70,16 @@ Transfer-Encoding: chunked
 
 This functionality is provided by the exception filter.
 
-Further examples can be found from the example project __AzureFunctionsV2.HttpExtensions.Examples.FunctionApp__.
+Further examples can be found from the example project __AzureFunctionsV2.HttpExtensions.Examples.FunctionApp__ and documentation on exception
+handling from the [wiki](https://github.com/Jusas/AzureFunctionsV2.HttpExtensions/wiki).
 
 
-## Features
-
-- Enables you to define Function signatures similar to ASP.NET Controller conventions
-- Automatically deserializes objects, lists and arrays, supporting JSON and XML content out of the box
-- Provides basic input validation via JSON deserializer
-- Provides an exception filter, allowing more control over responses
-- Allows overriding default deserialization methods and exception handling with custom behaviour
 
 ## Documentation
 
-The project comes with an example project in the sources [AzureFunctionsV2.HttpExtensions.Examples.FunctionApp](https://github.com/Jusas/AzureFunctionsV2.HttpExtensions/tree/master/src/AzureFunctionsV2.HttpExtensions.Examples.FunctionApp) as well as with some Wiki documentation. Please check the Wiki, hopefully it'll answer your questions before opening an issue.
+The project comes with an example project in the sources [AzureFunctionsV2.HttpExtensions.Examples.FunctionApp](https://github.com/Jusas/AzureFunctionsV2.HttpExtensions/tree/master/src/AzureFunctionsV2.HttpExtensions.Examples.FunctionApp) as well as with some [wiki](https://github.com/Jusas/AzureFunctionsV2.HttpExtensions/wiki) documentation. Please check the wiki
+before opening an issue.
+
 
 ## How was this made?
 

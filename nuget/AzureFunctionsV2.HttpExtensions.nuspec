@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>AzureFunctionsV2.HttpExtensions</id>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <authors>Jussi Saarivirta</authors>
     <owners>Jussi Saarivirta</owners>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
@@ -19,7 +19,11 @@
         <dependency id="Microsoft.Azure.WebJobs" version="3.0.3" exclude="Build,Analyzers" />
         <dependency id="Microsoft.Azure.WebJobs.Extensions" version="3.0.1" exclude="Build,Analyzers" />
         <dependency id="Microsoft.Azure.WebJobs.Extensions.Http" version="3.0.1" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.IdentityModel.Protocols" version="2.1.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.IdentityModel.Protocols.OpenIdConnect" version="2.1.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.IdentityModel.Tokens" version="5.1.0" exclude="Build,Analyzers" />
         <dependency id="Newtonsoft.Json" version="11.0.2" exclude="Build,Analyzers" />
+        <dependency id="Portable.BouncyCastle" version="1.8.4" exclude="Build,Analyzers" />
       </group>
     </dependencies>
   </metadata>

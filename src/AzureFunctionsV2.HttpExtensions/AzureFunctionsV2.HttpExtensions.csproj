@@ -13,6 +13,7 @@
     <RepositoryType>Git</RepositoryType>
     <PackageTags>Azure Functions</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
