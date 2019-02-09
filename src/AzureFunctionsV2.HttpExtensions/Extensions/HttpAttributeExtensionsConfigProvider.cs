@@ -22,7 +22,7 @@ namespace AzureFunctionsV2.HttpExtensions.Extensions
             var ruleFromForm = context.AddBindingRule<HttpFormAttribute>();
             var ruleFromHeader = context.AddBindingRule<HttpHeaderAttribute>();
             var ruleFromQuery = context.AddBindingRule<HttpQueryAttribute>();
-            var ruleFromAuth = context.AddBindingRule<HttpJwtAttribute>();
+            var ruleFromAuth = context.AddBindingRule<HttpTokenAttribute>();
 
             ruleFromBody.BindToInput<AttributedParameter>(BodyPlaceholder);
             ruleFromForm.BindToInput<AttributedParameter>(FormPlaceholder);
@@ -38,6 +38,6 @@ namespace AzureFunctionsV2.HttpExtensions.Extensions
         private async Task<AttributedParameter> FormPlaceholder(HttpFormAttribute attribute, ValueBindingContext ctx) => new AttributedParameter(attribute);
         private async Task<AttributedParameter> HeaderPlaceholder(HttpHeaderAttribute attribute, ValueBindingContext ctx) => new AttributedParameter(attribute);
         private async Task<AttributedParameter> QueryPlaceholder(HttpQueryAttribute attribute, ValueBindingContext ctx) => new AttributedParameter(attribute);
-        private async Task<AttributedParameter> AuthPlaceholder(HttpJwtAttribute attribute, ValueBindingContext ctx) => new AttributedParameter(attribute);
+        private async Task<AttributedParameter> AuthPlaceholder(HttpTokenAttribute attribute, ValueBindingContext ctx) => new AttributedParameter(attribute);
     }
 }

@@ -9,15 +9,15 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
     /// <summary>
     /// Implementation of the authorized Function discoverer.    
     /// </summary>
-    public class JwtAuthorizedFunctionDiscoverer : IJwtAuthorizedFunctionDiscoverer
+    public class AuthorizedFunctionDiscoverer : IAuthorizedFunctionDiscoverer
     {
         /// <summary>
-        /// Finds Functions that have the <see cref="HttpJwtAuthorizeAttribute"/> attached.
+        /// Finds Functions that have the <see cref="HttpAuthorizeAttribute"/> attached.
         /// Scans assemblies that have been loaded, specifically the ones that refer to this
         /// assembly, and then looks for the attribute in static class static methods.
         /// </summary>
         /// <returns></returns>
-        public Dictionary<string, (MethodInfo, IList<HttpJwtAuthorizeAttribute>)> GetFunctions()
+        public Dictionary<string, (MethodInfo, IList<HttpAuthorizeAttribute>)> GetFunctions()
         {
             // Find functions from the assemblies. Criteria:
             // - member of static class
@@ -29,7 +29,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
                     .Where(a => a.GetReferencedAssemblies()
                         .Any(r => r.Name == Assembly.GetAssembly(this.GetType()).GetName().Name));
 
-            var functions = new Dictionary<string, (MethodInfo, IList<HttpJwtAuthorizeAttribute>)>();
+            var functions = new Dictionary<string, (MethodInfo, IList<HttpAuthorizeAttribute>)>();
             foreach (var candidateAssembly in candidateAssemblies)
             {
                 var asmFunctionMethodsWithAuth = candidateAssembly.ExportedTypes
@@ -40,7 +40,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
                             p.ParameterType == typeof(HttpRequest) &&
                             p.GetCustomAttributes().Any(a => a.GetType().Name == "HttpTriggerAttribute")
                         ) &&
-                        m.GetCustomAttributes<HttpJwtAuthorizeAttribute>().Any()
+                        m.GetCustomAttributes<HttpAuthorizeAttribute>().Any()
                     );
                 foreach (var method in asmFunctionMethodsWithAuth)
                 {
@@ -53,7 +53,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
                         methodFunctionName = propInfo.GetValue(functionNameAttribute) as string ?? method.Name;
                     }
 
-                    var authorizeAttributes = method.GetCustomAttributes<HttpJwtAuthorizeAttribute>().ToList();
+                    var authorizeAttributes = method.GetCustomAttributes<HttpAuthorizeAttribute>().ToList();
                     functions.Add(methodFunctionName, (method, authorizeAttributes));
                 }
             }

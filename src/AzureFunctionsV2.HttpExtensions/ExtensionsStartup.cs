@@ -25,19 +25,21 @@ namespace AzureFunctionsV2.HttpExtensions
             builder.Services.AddSingleton<IHttpExceptionHandler, DefaultHttpExceptionHandler>();
             builder.Services.AddSingleton<IHttpResponseErrorFormatter, DefaultHttpResponseErrorFormatter>();
 
-            builder.Services.AddSingleton<IJwtAuthorizedFunctionDiscoverer, JwtAuthorizedFunctionDiscoverer>();
-            builder.Services.AddSingleton<IFunctionFilter, JwtHttpAuthorizationFilter>();
+            builder.Services.AddSingleton<IAuthorizedFunctionDiscoverer, AuthorizedFunctionDiscoverer>();
+            builder.Services.AddSingleton<IFunctionFilter, HttpAuthorizationFilter>();
             builder.Services.AddSingleton<IJwtAuthenticator, JwtAuthenticator>(provider =>
             {
-                var options = provider.GetService<IOptions<JwtAuthenticationOptions>>();
+                var options = provider.GetService<IOptions<HttpAuthenticationOptions>>();
                 var configManager =
-                    options?.Value.TokenValidationParameters is OpenIdConnectJwtValidationParameters oidcParams
+                    options?.Value?.JwtAuthentication?.TokenValidationParameters is OpenIdConnectJwtValidationParameters oidcParams
                         ? new ConfigurationManager<OpenIdConnectConfiguration>(
                             oidcParams.OpenIdConnectConfigurationUrl, new OpenIdConnectConfigurationRetriever())
                         : null;
                 return new JwtAuthenticator(options, new JwtSecurityTokenHandler(), configManager);
             });
-
+            builder.Services.AddSingleton<IBasicAuthenticator, BasicAuthenticator>();
+            builder.Services.AddSingleton<IOAuth2Authenticator, OAuth2Authenticator>();
+            builder.Services.AddSingleton<IApiKeyAuthenticator, ApiKeyAuthenticator>();
         }
     }
 }

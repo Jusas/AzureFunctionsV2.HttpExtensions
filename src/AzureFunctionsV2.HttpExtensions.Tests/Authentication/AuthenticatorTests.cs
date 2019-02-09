@@ -9,9 +9,9 @@ using Microsoft.IdentityModel.Tokens;
 using Moq;
 using Xunit;
 
-namespace AzureFunctionsV2.HttpExtensions.Tests.JwtAuthentication
+namespace AzureFunctionsV2.HttpExtensions.Tests.Authentication
 {
-    public class JwtAuthenticatorTests
+    public class AuthenticatorTests
     {
         [Fact]
         public async Task Should_throw_without_valid_configuration()

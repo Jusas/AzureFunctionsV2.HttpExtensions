@@ -20,11 +20,11 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
         private readonly IConfigurationManager<OpenIdConnectConfiguration> _manager;
         private ISecurityTokenValidator _handler;
 
-        public JwtAuthenticator(IOptions<JwtAuthenticationOptions> config, 
+        public JwtAuthenticator(IOptions<HttpAuthenticationOptions> config, 
             ISecurityTokenValidator jwtSecurityTokenHandler,
             IConfigurationManager<OpenIdConnectConfiguration> configurationManager)
         {
-            _jwtValidationParameters = config?.Value.TokenValidationParameters;
+            _jwtValidationParameters = config?.Value?.JwtAuthentication?.TokenValidationParameters;
             _handler = jwtSecurityTokenHandler;
             _manager = configurationManager;
         }
@@ -36,10 +36,16 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
         /// </summary>
         /// <param name="jwtToken"></param>
         /// <returns></returns>
+        /// <exception cref="HttpAuthorizationException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
         public async Task<(ClaimsPrincipal claimsPrincipal, SecurityToken validatedToken)> Authenticate(string jwtToken)
         {
             if(_jwtValidationParameters == null)
                 throw new InvalidOperationException("JwtAuthenticatorOptions have not been configured");
+
+            if (!jwtToken.StartsWith("Bearer "))
+                throw new HttpAuthenticationException("Expected Bearer token");
+            jwtToken = jwtToken.Substring(7);
 
             if (_jwtValidationParameters is OpenIdConnectJwtValidationParameters oidcParams &&
                 _jwtValidationParameters.IssuerSigningKeys == null)

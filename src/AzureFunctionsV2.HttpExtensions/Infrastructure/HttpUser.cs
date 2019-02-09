@@ -8,7 +8,7 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
     /// a value holder whose primary job is to hold the ClaimsPrincipal of the user
     /// that was resolved from the JWT.
     /// <para>
-    /// This class should always have the binding attribute <see cref="HttpJwtAttribute"/> applied to it
+    /// This class should always have the binding attribute <see cref="HttpTokenAttribute"/> applied to it
     /// in the Function signature.
     /// </para>
     /// </summary>

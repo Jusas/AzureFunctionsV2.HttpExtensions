@@ -13,9 +13,9 @@ using Microsoft.Extensions.Primitives;
 using Moq;
 using Xunit;
 
-namespace AzureFunctionsV2.HttpExtensions.Tests.JwtAuthentication
+namespace AzureFunctionsV2.HttpExtensions.Tests.Authentication
 {
-    public class JwtHttpAuthorizationFilterTests
+    public class HttpAuthorizationFilterTests
     {
 
         [Fact]
@@ -27,7 +27,7 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.JwtAuthentication
             {
                 return (new ClaimsPrincipal(), new JwtSecurityToken());
             });
-            var discoverer = new Mock<IJwtAuthorizedFunctionDiscoverer>();
+            var discoverer = new Mock<IAuthorizedFunctionDiscoverer>();
             var method = new Mock<MethodInfo>();
             discoverer.Setup(x => x.GetFunctions()).Returns(
                 new Dictionary<string, (MethodInfo, IList<HttpJwtAuthorizeAttribute>)>()
@@ -59,7 +59,7 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.JwtAuthentication
             {
                 return (new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>() { new Claim("myClaim", "myValue") })), new JwtSecurityToken());
             });
-            var discoverer = new Mock<IJwtAuthorizedFunctionDiscoverer>();
+            var discoverer = new Mock<IAuthorizedFunctionDiscoverer>();
             var method = new Mock<MethodInfo>();
             discoverer.Setup(x => x.GetFunctions()).Returns(
                 new Dictionary<string, (MethodInfo, IList<HttpJwtAuthorizeAttribute>)>()
@@ -95,7 +95,7 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.JwtAuthentication
             {
                 return (new ClaimsPrincipal(), new JwtSecurityToken());
             });
-            var discoverer = new Mock<IJwtAuthorizedFunctionDiscoverer>();
+            var discoverer = new Mock<IAuthorizedFunctionDiscoverer>();
             discoverer.Setup(x => x.GetFunctions()).Returns(
                 new Dictionary<string, (MethodInfo, IList<HttpJwtAuthorizeAttribute>)>());
 

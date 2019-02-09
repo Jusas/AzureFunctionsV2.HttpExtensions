@@ -8,8 +8,8 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
     /// (<see cref="MethodInfo"/>, <see cref="HttpJwtAuthorizeAttribute"/>), ie. all
     /// the Functions that bear the <see cref="HttpJwtAuthorizeAttribute"/>.
     /// </summary>
-    public interface IJwtAuthorizedFunctionDiscoverer
+    public interface IAuthorizedFunctionDiscoverer
     {
-        Dictionary<string, (MethodInfo, IList<HttpJwtAuthorizeAttribute>)> GetFunctions();
+        Dictionary<string, (MethodInfo, IList<HttpAuthorizeAttribute>)> GetFunctions();
     }
 }
