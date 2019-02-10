@@ -16,7 +16,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
 
         public async Task<bool> Authenticate(string apiKey, HttpRequest request)
         {
-            if(_authenticationParameters == null)
+            if(_authenticationParameters?.ApiKeyVerifier == null)
                 throw new InvalidOperationException("ApiKeyAuthenticationParameters have not been configured");
 
             return await _authenticationParameters.ApiKeyVerifier(apiKey, request);

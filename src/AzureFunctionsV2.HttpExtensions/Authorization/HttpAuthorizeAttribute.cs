@@ -18,7 +18,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
     {
         public HttpAuthorizeAttribute(Scheme scheme)
         {
-            
+            Scheme = scheme;
         }
         public Scheme Scheme { get; set; }
     }

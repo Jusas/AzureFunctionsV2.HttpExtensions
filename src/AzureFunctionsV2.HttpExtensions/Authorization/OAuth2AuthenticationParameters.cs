@@ -27,6 +27,8 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
 
         /// <summary>
         /// The authorization method that authenticates and authorizes the user.
+        /// Returns the resolved ClaimsPrincipal, or must throw an exception if authorization failed
+        /// or user was unauthorized.
         /// </summary>
         public AuthorizeMethod CustomAuthorizationFilter { get; set; }
     }

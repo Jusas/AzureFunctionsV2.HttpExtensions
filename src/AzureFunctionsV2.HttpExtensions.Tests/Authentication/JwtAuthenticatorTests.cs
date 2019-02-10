@@ -11,7 +11,7 @@ using Xunit;
 
 namespace AzureFunctionsV2.HttpExtensions.Tests.Authentication
 {
-    public class AuthenticatorTests
+    public class JwtAuthenticatorTests
     {
         [Fact]
         public async Task Should_throw_without_valid_configuration()
@@ -29,14 +29,18 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.Authentication
             Should_get_and_use_config_from_OIDC_endpoint_when_OpenIdConnectJwtValidationParameters_is_used()
         {
             // Arrange
-            var config = new Mock<IOptions<JwtAuthenticationOptions>>();
-            config.SetupGet(opts => opts.Value).Returns(new JwtAuthenticationOptions()
+            var config = new Mock<IOptions<HttpAuthenticationOptions>>();
+            var optionsObject = new HttpAuthenticationOptions()
             {
-                TokenValidationParameters = new OpenIdConnectJwtValidationParameters()
+                JwtAuthentication = new JwtAuthenticationParameters()
                 {
-                    OpenIdConnectConfigurationUrl = "http://foo.bar"
+                    TokenValidationParameters = new OpenIdConnectJwtValidationParameters()
+                    {
+                        OpenIdConnectConfigurationUrl = "http://foo.bar"
+                    }
                 }
-            });
+            };
+            config.SetupGet(opts => opts.Value).Returns(optionsObject);
             var tokenValidator = new Mock<ISecurityTokenValidator>();
             var configManager = new Mock<IConfigurationManager<OpenIdConnectConfiguration>>();
             configManager.Setup(x => x.GetConfigurationAsync(It.IsAny<CancellationToken>()))
@@ -44,12 +48,12 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.Authentication
 
             // Act
             var jwtAuthenticator = new JwtAuthenticator(config.Object, tokenValidator.Object, configManager.Object);
-            await jwtAuthenticator.Authenticate("foo");
+            await jwtAuthenticator.Authenticate("Bearer foo");
             
             // Assert
             SecurityToken validatedToken;
             tokenValidator.Verify(
-                x => x.ValidateToken("foo", config.Object.Value.TokenValidationParameters, out validatedToken),
+                x => x.ValidateToken("foo", optionsObject.JwtAuthentication.TokenValidationParameters, out validatedToken),
                 Times.Once);
             configManager.Verify(x => x.GetConfigurationAsync(It.IsAny<CancellationToken>()), Times.Once);
         }

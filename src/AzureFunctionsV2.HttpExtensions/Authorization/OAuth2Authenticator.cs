@@ -20,7 +20,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
 
         public async Task<ClaimsPrincipal> Authenticate(string token, HttpRequest request, IList<HttpAuthorizeAttribute> attributes)
         {
-            if (_authenticationParameters == null)
+            if (_authenticationParameters?.CustomAuthorizationFilter == null)
                 throw new InvalidOperationException("OAuth2AuthenticationParameters have not been configured");
             
             if (!token.StartsWith("Bearer "))

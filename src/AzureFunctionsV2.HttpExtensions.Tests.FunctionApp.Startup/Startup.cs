@@ -21,16 +21,31 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.FunctionApp.Startup
             // builder.Services.Replace(ServiceDescriptor.Singleton<IHttpResponseErrorFormatter, MyHttpResponseErrorFormatter>());
 
             // Registering OIDC token validation parameters for the JWT authentication.
-            builder.Services.Configure<JwtAuthenticationOptions>(options =>
+            builder.Services.Configure<HttpAuthenticationOptions>(options =>
             {
-                options.TokenValidationParameters = new OpenIdConnectJwtValidationParameters()
+                options.ApiKeyAuthentication = new ApiKeyAuthenticationParameters()
                 {
-                    OpenIdConnectConfigurationUrl = "https://jusas-tests.eu.auth0.com/.well-known/openid-configuration",
-                    ValidAudiences = new List<string>() { "http://localhost:7071/", "XLjNBiBCx3_CZUAK3gagLSC_PPQjBDzB" },
-                    ValidateIssuerSigningKey = true,
-                    NameClaimType = ClaimTypes.NameIdentifier
+                    ApiKeyVerifier = async (s, request) => s == "key" ? true : false,
+                    HeaderName = "x-apikey",
+                    QueryParameterName = "apikey"
                 };
-                // options.CustomAuthorizationFilter = async (principal, token) => { };
+                options.BasicAuthentication = new BasicAuthenticationParameters()
+                {
+                    ValidCredentials = new Dictionary<string, string>() {{"admin", "admin"}}
+                };
+                options.JwtAuthentication = new JwtAuthenticationParameters()
+                {
+                    TokenValidationParameters = new OpenIdConnectJwtValidationParameters()
+                    {
+                        OpenIdConnectConfigurationUrl =
+                            "https://jusas-tests.eu.auth0.com/.well-known/openid-configuration",
+                        ValidAudiences = new List<string>()
+                            {"http://localhost:7071/", "XLjNBiBCx3_CZUAK3gagLSC_PPQjBDzB"},
+                        ValidateIssuerSigningKey = true,
+                        NameClaimType = ClaimTypes.NameIdentifier
+                    },
+                    AuthorizationFilter = async (principal, token, attributes) => { }
+                };
             });
 
             // Alternatively, if there is no OIDC endpoint and I want to define the public certificate and do things manually:
