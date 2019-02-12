@@ -312,9 +312,7 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.Infrastructure
         {
             List<MockedFunctionRequestContext> contexts = new List<MockedFunctionRequestContext>();
 
-            MockedFunctionRequestContext mockedFunctionRequestContext;
-
-            mockedFunctionRequestContext = new MockedFunctionRequestContext();
+            var mockedFunctionRequestContext = new MockedFunctionRequestContext();
             var bodyParam = mockedFunctionRequestContext.AddBodyHttpParam<List<string>>("body", true);
             mockedFunctionRequestContext.HttpRequest.Body = null;
             contexts.Add(mockedFunctionRequestContext);

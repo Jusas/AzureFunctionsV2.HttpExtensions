@@ -8,6 +8,6 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
 {
     public interface IApiKeyAuthenticator
     {
-        Task<bool> Authenticate(string apiKey, HttpRequest request);
+        Task<bool> Authenticate(HttpRequest request);
     }
 }

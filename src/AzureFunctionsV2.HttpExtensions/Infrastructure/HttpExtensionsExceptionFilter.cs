@@ -12,7 +12,7 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
     public class HttpExtensionsExceptionFilter : IFunctionExceptionFilter
     {
         private static IHttpExceptionHandler _httpExceptionHandler;
-        private IHttpRequestStore _httpRequestStore;
+        private readonly IHttpRequestStore _httpRequestStore;
 
         public HttpExtensionsExceptionFilter(IHttpRequestStore httpRequestStore, IHttpExceptionHandler httpExceptionHandler)
         {

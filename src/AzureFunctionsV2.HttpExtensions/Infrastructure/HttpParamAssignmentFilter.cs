@@ -22,8 +22,8 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
     /// </summary>
     public class HttpParamAssignmentFilter : IFunctionFilter, IFunctionInvocationFilter
     {
-        private IHttpRequestStore _httpRequestStore;
-        private IHttpParamValueDeserializer _paramValueDeserializer;
+        private readonly IHttpRequestStore _httpRequestStore;
+        private readonly IHttpParamValueDeserializer _paramValueDeserializer;
 
         public HttpParamAssignmentFilter(IHttpRequestStore httpRequestStore, IHttpParamValueDeserializer paramValueDeserializer)
         {
@@ -184,9 +184,7 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
                 // Allow overriding from a custom deserializer.
                 if (_paramValueDeserializer != null)
                 {
-                    DeserializerResult resultFromDeserializer;
-
-                    resultFromDeserializer = await _paramValueDeserializer.DeserializeBodyParameter(body, httpParamValueType, 
+                    var resultFromDeserializer = await _paramValueDeserializer.DeserializeBodyParameter(body, httpParamValueType, 
                         functionExecutingContext.FunctionName, httpRequest);
                     if (resultFromDeserializer.DidDeserialize)
                     {
@@ -336,7 +334,6 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
                 if (httpParamValueType.IsArray || typeof(IList).IsAssignableFrom(httpParamValueType))
                 {
                     var itemType = httpParamValueType.GetElementType();
-                    ConstructorInfo listConstructor;
                     if (itemType == null && httpParamValueType.IsGenericType)
                     {
                         itemType = httpParamValueType.GetGenericArguments().First();
@@ -345,7 +342,7 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
                     var convertedValues = Array.ConvertAll(stringValues.ToArray(),
                         input => itemType == typeof(string) ? input : JsonConvert.DeserializeObject(input, itemType));
                     var typedValueArray = Array.CreateInstance(itemType, convertedValues.Length);
-                    listConstructor = httpParamValueType.GetConstructors()
+                    var listConstructor = httpParamValueType.GetConstructors()
                         .FirstOrDefault(x => x.GetParameters().Length == 1 && (x.GetParameters().First().ParameterType).IsAssignableFrom(typedValueArray.GetType()));
 
                     for (int i = 0; i < convertedValues.Length; i++)

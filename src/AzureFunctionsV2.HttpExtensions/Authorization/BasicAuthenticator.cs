@@ -9,7 +9,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
 {
     public class BasicAuthenticator : IBasicAuthenticator
     {
-        private BasicAuthenticationParameters _authenticationParameters;
+        private readonly BasicAuthenticationParameters _authenticationParameters;
 
         public BasicAuthenticator(IOptions<HttpAuthenticationOptions> authOptions)
         {

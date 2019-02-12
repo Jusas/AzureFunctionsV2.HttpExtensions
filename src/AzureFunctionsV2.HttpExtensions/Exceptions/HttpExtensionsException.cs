@@ -11,7 +11,7 @@ namespace AzureFunctionsV2.HttpExtensions.Exceptions
         public HttpContext HttpContext { get; }
         public string ParameterName { get; }
 
-        public HttpExtensionsException(string message, Exception inner, string parameterName, HttpContext requestHttpContext) : base(message, inner)
+        protected HttpExtensionsException(string message, Exception inner, string parameterName, HttpContext requestHttpContext) : base(message, inner)
         {
             HttpContext = requestHttpContext;
             ParameterName = parameterName;

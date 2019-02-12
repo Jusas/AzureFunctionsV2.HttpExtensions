@@ -17,7 +17,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionsV2.HttpExtens
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03 Examples", "03 Examples", "{FF3921F3-F04E-42B2-A8D0-F757051DEB76}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureFunctionsV2.HttpExtensions.Examples.FunctionApp", "AzureFunctionsV2.HttpExtensions.Examples.FunctionApp\AzureFunctionsV2.HttpExtensions.Examples.FunctionApp.csproj", "{B584E208-9F6A-47A7-996A-07F818A373C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionsV2.HttpExtensions.Examples.FunctionApp", "AzureFunctionsV2.HttpExtensions.Examples.FunctionApp\AzureFunctionsV2.HttpExtensions.Examples.FunctionApp.csproj", "{B584E208-9F6A-47A7-996A-07F818A373C9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureFunctionsV2.HttpExtensions.Examples.Authorization", "AzureFunctionsV2.HttpExtensions.Examples.Authorization\AzureFunctionsV2.HttpExtensions.Examples.Authorization.csproj", "{736F4CC3-6600-4B16-AF85-9A06A35D207D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureFunctionsV2.HttpExtensions.Examples.Authorization.Startup", "AzureFunctionsV2.HttpExtensions.Examples.Authorization.Startup\AzureFunctionsV2.HttpExtensions.Examples.Authorization.Startup.csproj", "{8B5E8D25-81FE-4B15-A0D1-4B9B7DD14332}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +49,14 @@ Global
 		{B584E208-9F6A-47A7-996A-07F818A373C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B584E208-9F6A-47A7-996A-07F818A373C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B584E208-9F6A-47A7-996A-07F818A373C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{736F4CC3-6600-4B16-AF85-9A06A35D207D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{736F4CC3-6600-4B16-AF85-9A06A35D207D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{736F4CC3-6600-4B16-AF85-9A06A35D207D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{736F4CC3-6600-4B16-AF85-9A06A35D207D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B5E8D25-81FE-4B15-A0D1-4B9B7DD14332}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B5E8D25-81FE-4B15-A0D1-4B9B7DD14332}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B5E8D25-81FE-4B15-A0D1-4B9B7DD14332}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B5E8D25-81FE-4B15-A0D1-4B9B7DD14332}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -55,6 +67,8 @@ Global
 		{790D3638-1356-4135-A4CC-3B987B0F2009} = {5191C2F7-F6CD-4B75-B835-425CA894BD88}
 		{24B510EE-69A6-4404-B30E-F95EF640E4C2} = {5191C2F7-F6CD-4B75-B835-425CA894BD88}
 		{B584E208-9F6A-47A7-996A-07F818A373C9} = {FF3921F3-F04E-42B2-A8D0-F757051DEB76}
+		{736F4CC3-6600-4B16-AF85-9A06A35D207D} = {FF3921F3-F04E-42B2-A8D0-F757051DEB76}
+		{8B5E8D25-81FE-4B15-A0D1-4B9B7DD14332} = {FF3921F3-F04E-42B2-A8D0-F757051DEB76}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F6DF2335-7459-442B-84FE-E0605494D34F}

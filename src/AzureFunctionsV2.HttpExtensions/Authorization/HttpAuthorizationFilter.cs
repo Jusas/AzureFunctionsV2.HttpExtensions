@@ -15,12 +15,12 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
 {
     public class HttpAuthorizationFilter : IFunctionFilter, IFunctionInvocationFilter
     {
-        private IJwtAuthenticator _jwtAuthenticator;
-        private IApiKeyAuthenticator _apiKeyAuthenticator;
-        private IBasicAuthenticator _basicAuthenticator;
-        private HttpAuthenticationOptions _options;
-        private IAuthorizedFunctionDiscoverer _authorizedFunctionDiscoverer;
-        private IOAuth2Authenticator _oAuth2Authenticator;
+        private readonly IJwtAuthenticator _jwtAuthenticator;
+        private readonly IApiKeyAuthenticator _apiKeyAuthenticator;
+        private readonly IBasicAuthenticator _basicAuthenticator;
+        private readonly HttpAuthenticationOptions _options;
+        private readonly IAuthorizedFunctionDiscoverer _authorizedFunctionDiscoverer;
+        private readonly IOAuth2Authenticator _oAuth2Authenticator;
         private static readonly object _lock = new object();
         private Dictionary<string, (MethodInfo, IList<HttpAuthorizeAttribute>)> _functionCache;
 
@@ -113,22 +113,10 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
 
                 if (authorizeAttributes.Any(a => a.Scheme == Scheme.HeaderApiKey || a.Scheme == Scheme.QueryApiKey))
                 {
-                    var apiKeyAttributes = authorizeAttributes.Where(a =>
-                            a.Scheme == Scheme.HeaderApiKey || a.Scheme == Scheme.QueryApiKey)
-                        .ToList();
-                    var apiKeyQueryFieldName = _options?.ApiKeyAuthentication?.QueryParameterName;
-                    var apiKeyHeaderName = _options?.ApiKeyAuthentication?.HeaderName;
-
-                    foreach (var attribute in apiKeyAttributes)
-                    {
-                        var apiKey = attribute.Scheme == Scheme.HeaderApiKey
-                            ? httpRequest.Headers[apiKeyHeaderName].ToString()
-                            : httpRequest.Query[apiKeyQueryFieldName].ToString();
-                        bool passed = await _apiKeyAuthenticator.Authenticate(apiKey, httpRequest);
-                        if (!passed)
-                            throw new HttpAuthenticationException("Unauthorized");
-                        return;
-                    }
+                    bool passed = await _apiKeyAuthenticator.Authenticate(httpRequest);
+                    if (!passed)
+                        throw new HttpAuthenticationException("Unauthorized");
+                    return;
                 }
 
                 if (authorizeAttributes.Any(a => a.Scheme == Scheme.Basic))

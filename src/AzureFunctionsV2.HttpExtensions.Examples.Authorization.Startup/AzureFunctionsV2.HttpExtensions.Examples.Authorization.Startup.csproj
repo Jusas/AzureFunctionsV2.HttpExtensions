@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AzureFunctionsV2.HttpExtensions\AzureFunctionsV2.HttpExtensions.csproj" />
+  </ItemGroup>
+
+</Project>

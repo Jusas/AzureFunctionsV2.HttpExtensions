@@ -11,7 +11,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
 {
     public class OAuth2Authenticator : IOAuth2Authenticator
     {
-        private OAuth2AuthenticationParameters _authenticationParameters;
+        private readonly OAuth2AuthenticationParameters _authenticationParameters;
 
         public OAuth2Authenticator(IOptions<HttpAuthenticationOptions> httpAuthOptions)
         {

@@ -10,7 +10,7 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
     /// </summary>
     public class HttpRequestStore : IHttpRequestStore
     {
-        private ConcurrentDictionary<Guid, HttpRequest> _httpRequests = new ConcurrentDictionary<Guid, HttpRequest>();
+        private readonly ConcurrentDictionary<Guid, HttpRequest> _httpRequests = new ConcurrentDictionary<Guid, HttpRequest>();
 
         public void Set(Guid functionInvocationId, HttpRequest httpRequest)
         {

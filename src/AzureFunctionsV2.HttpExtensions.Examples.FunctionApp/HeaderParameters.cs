@@ -29,7 +29,7 @@ namespace AzureFunctionsV2.HttpExtensions.Examples.FunctionApp
         /// are supported as shown below.
         /// </summary>
         /// <param name="req"></param>
-        /// <param name="myHeader"></param>
+        /// <param name="myBasicHeader"></param>
         /// <param name="log"></param>
         /// <returns></returns>
         [FunctionName("HeaderParametersDemo1")]

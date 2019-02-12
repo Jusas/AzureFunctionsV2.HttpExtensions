@@ -16,9 +16,9 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
     /// </summary>
     public class JwtAuthenticator : IJwtAuthenticator
     {
-        private TokenValidationParameters _jwtValidationParameters;
+        private readonly TokenValidationParameters _jwtValidationParameters;
         private readonly IConfigurationManager<OpenIdConnectConfiguration> _manager;
-        private ISecurityTokenValidator _handler;
+        private readonly ISecurityTokenValidator _handler;
 
         public JwtAuthenticator(IOptions<HttpAuthenticationOptions> config, 
             ISecurityTokenValidator jwtSecurityTokenHandler,
@@ -57,8 +57,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
 
             try
             {
-                SecurityToken validatedToken = null;
-                var claimsPrincipal = _handler.ValidateToken(jwtToken, _jwtValidationParameters, out validatedToken);
+                var claimsPrincipal = _handler.ValidateToken(jwtToken, _jwtValidationParameters, out var validatedToken);
                 return (claimsPrincipal, validatedToken);
             }
             catch (Exception e)

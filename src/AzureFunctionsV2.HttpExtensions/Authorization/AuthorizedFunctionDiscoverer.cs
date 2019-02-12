@@ -27,7 +27,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
 
             var candidateAssemblies = AppDomain.CurrentDomain.GetAssemblies()
                     .Where(a => a.GetReferencedAssemblies()
-                        .Any(r => r.Name == Assembly.GetAssembly(this.GetType()).GetName().Name));
+                        .Any(r => r.Name == Assembly.GetAssembly(GetType()).GetName().Name));
 
             var functions = new Dictionary<string, (MethodInfo, IList<HttpAuthorizeAttribute>)>();
             foreach (var candidateAssembly in candidateAssemblies)

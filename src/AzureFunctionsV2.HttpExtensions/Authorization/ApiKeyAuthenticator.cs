@@ -7,19 +7,37 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
 {
     public class ApiKeyAuthenticator : IApiKeyAuthenticator
     {
-        private ApiKeyAuthenticationParameters _authenticationParameters;
+        private readonly ApiKeyAuthenticationParameters _authenticationParameters;
 
         public ApiKeyAuthenticator(IOptions<HttpAuthenticationOptions> authOptions)
         {
             _authenticationParameters = authOptions?.Value?.ApiKeyAuthentication;
         }
 
-        public async Task<bool> Authenticate(string apiKey, HttpRequest request)
+        public async Task<bool> Authenticate(HttpRequest request)
         {
             if(_authenticationParameters?.ApiKeyVerifier == null)
-                throw new InvalidOperationException("ApiKeyAuthenticationParameters have not been configured");
+                throw new InvalidOperationException("ApiKeyAuthenticationParameters ApiKeyVerifier has not been configured");
 
-            return await _authenticationParameters.ApiKeyVerifier(apiKey, request);
+            if(string.IsNullOrEmpty(_authenticationParameters.HeaderName) && string.IsNullOrEmpty(_authenticationParameters.QueryParameterName))
+                throw new InvalidOperationException("ApiKeyAuthenticationParameters HeaderName and QueryParameterName have neither been configured");
+
+            var apiKeyQueryFieldName = _authenticationParameters.QueryParameterName;
+            var apiKeyHeaderName = _authenticationParameters.HeaderName;
+
+            if (!string.IsNullOrEmpty(apiKeyHeaderName))
+            {
+                if (request.Headers.ContainsKey(apiKeyHeaderName))
+                    return await _authenticationParameters.ApiKeyVerifier(request.Headers[apiKeyHeaderName], request);
+            }
+
+            if (!string.IsNullOrEmpty(apiKeyQueryFieldName))
+            {
+                if (request.Query.ContainsKey(apiKeyQueryFieldName))
+                    return await _authenticationParameters.ApiKeyVerifier(request.Query[apiKeyQueryFieldName], request);
+            }
+
+            return false;
         }
     }
 }
