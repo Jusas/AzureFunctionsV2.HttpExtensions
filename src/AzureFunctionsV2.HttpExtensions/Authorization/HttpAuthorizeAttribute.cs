@@ -20,6 +20,11 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
         {
             Scheme = scheme;
         }
+
+        public HttpAuthorizeAttribute()
+        {
+        }
+
         public Scheme Scheme { get; set; }
     }
 }
