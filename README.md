@@ -5,13 +5,19 @@
 
 ![Logo](assets/logo.png)
 
-
 This C# library extends the Azure Functions HTTP Trigger and adds useful extensions to 
 make working with HTTP requests more fluent. It allows you to
 add HTTP parameters from headers, query parameters, body and form fields directly
 to the function signature. It also adds some boilerplate code to take advantage of
 Function Filters in v2 Functions, allowing you to specify cross-cutting Exception 
 handling tasks combined with an overridable error response formatter.
+
+Also see the [NSwag.AzureFunctionsV2 project](https://github.com/Jusas/NSwag.AzureFunctionsV2) which is
+a Swagger Generator supplementing NSwag, built specifically to produce Swagger JSON from Azure Function Apps and fully
+supports the HttpExtensions project, allowing you to pretty much use a convenient syntax with
+HTTP request parameters defined in the Function signature and getting the full benefits of an automatic
+Swagger JSON generation from the Function App assembly. These two projects combined make
+Azure Functions a different experience, and building APIs with Functions is now less of a hassle.
 
 ## Features
 
@@ -25,17 +31,17 @@ handling tasks combined with an overridable error response formatter.
 ### Example usage
 
 ```C#
-[HttpJwtAuthorize]
+[HttpAuthorize(Scheme.Jwt)]
 [FunctionName("TestFunction")]
 public static async Task<IActionResult> TestFunction (
-    [HttpTrigger(AuthorizationLevel.Function, "post", Route = "mymethod/{somestring}")] HttpRequest req,
+    [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "mymethod/{somestring}")] HttpRequest req,
     string somestring,
     [HttpQuery(Required = true)]HttpParam<string> stringParam,
     [HttpQuery]HttpParam<List<int>> intParams,
     [HttpQuery]HttpParam<TestEnum> enumParam,
     [HttpBody]HttpParam<MyClass> myBodyObject,
     [HttpHeader(Name = "x-my-header")]HttpParam<string> customHeader,
-    [HttpJwt]HttpUser user,
+    [HttpToken]HttpUser user,
     ILogger log)
 {
 	string blah = stringParam; // implicit operator
