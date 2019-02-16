@@ -1,0 +1,1 @@
+nuget pack AzureFunctionsV2.HttpExtensions.csproj
