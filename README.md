@@ -24,7 +24,7 @@ Azure Functions a different experience, and building APIs with Functions is now 
 - Enables you to define Function signatures similar to ASP.NET Controller conventions
 - Automatically deserializes objects, lists and arrays, supporting JSON and XML content out of the box
 - Provides basic input validation via JSON deserializer
-- Provides basic JWT, Basic, ApiKey and OAuth2 authentication/authorization via attributes, which is also customizable
+- Provides JWT, Basic, ApiKey and OAuth2 authentication/authorization via attributes, which is also customizable
 - Provides an exception filter, allowing more control over responses
 - Allows overriding default deserialization methods and exception handling with custom behaviour
 
