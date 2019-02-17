@@ -102,5 +102,8 @@ the values to each HttpParam's Value property there.
 
 It's worth noticing that the Function Filters are a somewhat new feature and have been marked as obsolete - _however they're not obsolete, they have only been marked obsolete due to the team not having fully finished the features to consider them complete._ (see https://github.com/Azure/azure-webjobs-sdk/issues/1284)
 
+# Known issues
 
+Currently it seems that the emulator and the Azure runtime behave a bit differently, causing the
+response codes coming from the Exception Filter to not work in Azure. This is being investigated.
 
