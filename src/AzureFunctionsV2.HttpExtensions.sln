@@ -19,9 +19,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03 Examples", "03 Examples"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionsV2.HttpExtensions.Examples.FunctionApp", "AzureFunctionsV2.HttpExtensions.Examples.FunctionApp\AzureFunctionsV2.HttpExtensions.Examples.FunctionApp.csproj", "{B584E208-9F6A-47A7-996A-07F818A373C9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureFunctionsV2.HttpExtensions.Examples.Authorization", "AzureFunctionsV2.HttpExtensions.Examples.Authorization\AzureFunctionsV2.HttpExtensions.Examples.Authorization.csproj", "{736F4CC3-6600-4B16-AF85-9A06A35D207D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionsV2.HttpExtensions.Examples.Authorization", "AzureFunctionsV2.HttpExtensions.Examples.Authorization\AzureFunctionsV2.HttpExtensions.Examples.Authorization.csproj", "{736F4CC3-6600-4B16-AF85-9A06A35D207D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureFunctionsV2.HttpExtensions.Examples.Authorization.Startup", "AzureFunctionsV2.HttpExtensions.Examples.Authorization.Startup\AzureFunctionsV2.HttpExtensions.Examples.Authorization.Startup.csproj", "{8B5E8D25-81FE-4B15-A0D1-4B9B7DD14332}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionsV2.HttpExtensions.Examples.Authorization.Startup", "AzureFunctionsV2.HttpExtensions.Examples.Authorization.Startup\AzureFunctionsV2.HttpExtensions.Examples.Authorization.Startup.csproj", "{8B5E8D25-81FE-4B15-A0D1-4B9B7DD14332}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
