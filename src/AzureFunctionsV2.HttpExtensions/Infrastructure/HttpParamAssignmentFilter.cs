@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -43,82 +44,95 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
         /// <returns></returns>
         public async Task OnExecutingAsync(FunctionExecutingContext executingContext, CancellationToken cancellationToken)
         {
-            if (executingContext.Arguments.Values.Where(x => x != null).FirstOrDefault(
-                x => typeof(HttpRequest).IsAssignableFrom(x.GetType())) is HttpRequest httpRequest)
+            try
             {
-                _httpRequestStore.Set(executingContext.FunctionInstanceId, httpRequest);
-                foreach (var executingContextArgument in executingContext.Arguments)
+                if (executingContext.Arguments.Values.Where(x => x != null).FirstOrDefault(
+                        x => typeof(HttpRequest).IsAssignableFrom(x.GetType())) is HttpRequest httpRequest)
                 {
-                    var parameterName = executingContextArgument.Key;
-                    if (executingContextArgument.Value is IHttpParam parameterValue)
+                    _httpRequestStore.Set(executingContext.FunctionInstanceId, httpRequest);
+                    foreach (var executingContextArgument in executingContext.Arguments)
                     {
-                        if (parameterValue.HttpExtensionAttribute != null)
+                        var parameterName = executingContextArgument.Key;
+                        if (executingContextArgument.Value is IHttpParam parameterValue)
                         {
-                            var attributeType = parameterValue.HttpExtensionAttribute.GetType();
+                            if (parameterValue.HttpExtensionAttribute != null)
+                            {
+                                var attributeType = parameterValue.HttpExtensionAttribute.GetType();
 
-                            if (attributeType == typeof(HttpBodyAttribute))
-                            {
-                                bool wasAssigned = await TryAssignFromBody(httpRequest.Body, parameterValue, httpRequest, executingContext);
-                                if(!wasAssigned && ((HttpBodyAttribute)parameterValue.HttpExtensionAttribute).Required)
-                                    throw new ParameterRequiredException("Body parameter is required", null, parameterName, httpRequest.HttpContext);
-                            }
-                            else if(attributeType == typeof(HttpFormAttribute))
-                            {
-                                var formFieldName = ((HttpFormAttribute)parameterValue.HttpExtensionAttribute).Name ??
-                                                     parameterName;
-                                if (httpRequest.Form.ContainsKey(formFieldName))
+                                if (attributeType == typeof(HttpBodyAttribute))
                                 {
-                                    if (((HttpFormAttribute) parameterValue.HttpExtensionAttribute).Required &&
-                                        string.IsNullOrEmpty(httpRequest.Form[formFieldName].ToString()))
-                                    {
-                                        throw new ParameterRequiredException($"Form field '{formFieldName}' is required", 
-                                            null, parameterName, httpRequest.HttpContext);
-                                    }
-                                    await TryAssignFromStringValues(httpRequest.Form[formFieldName], parameterValue,
-                                        parameterName, httpRequest, executingContext);
+                                    bool wasAssigned = await TryAssignFromBody(httpRequest.Body, parameterValue, httpRequest, executingContext);
+                                    if (!wasAssigned && ((HttpBodyAttribute)parameterValue.HttpExtensionAttribute).Required)
+                                        throw new ParameterRequiredException("Body parameter is required", null, parameterName, httpRequest.HttpContext);
                                 }
-                                else if (httpRequest.Form.Files.Any(x => x.Name == formFieldName))
+                                else if (attributeType == typeof(HttpFormAttribute))
                                 {
-                                    await TryAssignFormFile(httpRequest.Form.Files.First(x => x.Name == formFieldName),
-                                        parameterValue, parameterName, httpRequest, executingContext);
-                                }
-                                // TODO: make more extensible, use case: uploading multiple files that need to be deserialized into objects.
-                                else if (httpRequest.Form.Files != null &&
-                                         typeof(IFormFileCollection) == GetHttpParamValueType(parameterValue))
-                                {
-                                    if (!httpRequest.Form.Files.Any() &&
-                                        ((HttpFormAttribute) parameterValue.HttpExtensionAttribute).Required)
+                                    var formFieldName = ((HttpFormAttribute)parameterValue.HttpExtensionAttribute).Name ??
+                                                         parameterName;
+                                    if (httpRequest.Form.ContainsKey(formFieldName))
                                     {
-                                        throw new ParameterRequiredException($"Form files are required", null, parameterName, httpRequest.HttpContext);
+                                        if (((HttpFormAttribute)parameterValue.HttpExtensionAttribute).Required &&
+                                            string.IsNullOrEmpty(httpRequest.Form[formFieldName].ToString()))
+                                        {
+                                            throw new ParameterRequiredException($"Form field '{formFieldName}' is required",
+                                                null, parameterName, httpRequest.HttpContext);
+                                        }
+                                        await TryAssignFromStringValues(httpRequest.Form[formFieldName], parameterValue,
+                                            parameterName, httpRequest, executingContext);
                                     }
+                                    else if (httpRequest.Form.Files.Any(x => x.Name == formFieldName))
+                                    {
+                                        await TryAssignFormFile(httpRequest.Form.Files.First(x => x.Name == formFieldName),
+                                            parameterValue, parameterName, httpRequest, executingContext);
+                                    }
+                                    // TODO: make more extensible, use case: uploading multiple files that need to be deserialized into objects.
+                                    else if (httpRequest.Form.Files != null &&
+                                             typeof(IFormFileCollection) == GetHttpParamValueType(parameterValue))
+                                    {
+                                        if (!httpRequest.Form.Files.Any() &&
+                                            ((HttpFormAttribute)parameterValue.HttpExtensionAttribute).Required)
+                                        {
+                                            throw new ParameterRequiredException($"Form files are required", null, parameterName, httpRequest.HttpContext);
+                                        }
 
-                                    AssignFormFileCollection(httpRequest.Form.Files, parameterValue);
+                                        AssignFormFileCollection(httpRequest.Form.Files, parameterValue);
+                                    }
+                                    else if (((HttpFormAttribute)parameterValue.HttpExtensionAttribute).Required)
+                                        throw new ParameterRequiredException($"Form field '{formFieldName}' is required", null, parameterName, httpRequest.HttpContext);
                                 }
-                                else if(((HttpFormAttribute)parameterValue.HttpExtensionAttribute).Required)
-                                    throw new ParameterRequiredException($"Form field '{formFieldName}' is required", null, parameterName, httpRequest.HttpContext);
-                            }
-                            else if (attributeType == typeof(HttpHeaderAttribute))
-                            {
-                                var headerName = ((HttpHeaderAttribute) parameterValue.HttpExtensionAttribute).Name ??
-                                                 parameterName;
-                                if (httpRequest.Headers.ContainsKey(headerName))
-                                    await TryAssignFromStringValues(httpRequest.Headers[headerName], parameterValue, parameterName, httpRequest, executingContext);
-                                else if (((HttpHeaderAttribute)parameterValue.HttpExtensionAttribute).Required)
-                                    throw new ParameterRequiredException($"Header '{headerName}' is required", null, parameterName, httpRequest.HttpContext);
-                            }
-                            else if (attributeType == typeof(HttpQueryAttribute))
-                            {
-                                var queryParamName = ((HttpQueryAttribute) parameterValue.HttpExtensionAttribute).Name ??
+                                else if (attributeType == typeof(HttpHeaderAttribute))
+                                {
+                                    var headerName = ((HttpHeaderAttribute)parameterValue.HttpExtensionAttribute).Name ??
                                                      parameterName;
-                                if (httpRequest.Query.ContainsKey(queryParamName))
-                                    await TryAssignFromStringValues(httpRequest.Query[queryParamName], parameterValue, parameterName, httpRequest, executingContext);
-                                else if (((HttpQueryAttribute)parameterValue.HttpExtensionAttribute).Required)
-                                    throw new ParameterRequiredException($"Query parameter '{queryParamName}' is required", null, parameterName, httpRequest.HttpContext);
+                                    if (httpRequest.Headers.ContainsKey(headerName))
+                                        await TryAssignFromStringValues(httpRequest.Headers[headerName], parameterValue, parameterName, httpRequest, executingContext);
+                                    else if (((HttpHeaderAttribute)parameterValue.HttpExtensionAttribute).Required)
+                                        throw new ParameterRequiredException($"Header '{headerName}' is required", null, parameterName, httpRequest.HttpContext);
+                                }
+                                else if (attributeType == typeof(HttpQueryAttribute))
+                                {
+                                    var queryParamName = ((HttpQueryAttribute)parameterValue.HttpExtensionAttribute).Name ??
+                                                         parameterName;
+                                    if (httpRequest.Query.ContainsKey(queryParamName))
+                                        await TryAssignFromStringValues(httpRequest.Query[queryParamName], parameterValue, parameterName, httpRequest, executingContext);
+                                    else if (((HttpQueryAttribute)parameterValue.HttpExtensionAttribute).Required)
+                                        throw new ParameterRequiredException($"Query parameter '{queryParamName}' is required", null, parameterName, httpRequest.HttpContext);
+                                }
                             }
                         }
-                    }
 
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                var httpRequest = executingContext.Arguments.Values.FirstOrDefault(
+                        x => typeof(HttpRequest).IsAssignableFrom(x.GetType()))
+                    as HttpRequest;
+                if (httpRequest.HttpContext.Items == null)
+                    httpRequest.HttpContext.Items = new Dictionary<object, object>();
+                httpRequest.HttpContext.Items.Add(nameof(HttpParamAssignmentFilter), e);
+                throw;
             }
         }
 
