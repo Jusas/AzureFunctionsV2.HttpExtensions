@@ -1,6 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using AzureFunctionsV2.HttpExtensions;
 using AzureFunctionsV2.HttpExtensions.Authorization;
+using AzureFunctionsV2.HttpExtensions.ILInjects;
 using AzureFunctionsV2.HttpExtensions.Infrastructure;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
@@ -19,14 +20,19 @@ namespace AzureFunctionsV2.HttpExtensions
         public void Configure(IWebJobsBuilder builder)
         {
             builder.AddAzureFunctionHttpExtensions();
-            builder.Services.AddSingleton<IFunctionFilter, HttpParamAssignmentFilter>();
-            builder.Services.AddSingleton<IFunctionFilter, HttpExtensionsExceptionFilter>();
-            builder.Services.AddSingleton<IHttpRequestStore, HttpRequestStore>();
-            builder.Services.AddSingleton<IHttpExceptionHandler, DefaultHttpExceptionHandler>();
-            builder.Services.AddSingleton<IHttpResponseErrorFormatter, DefaultHttpResponseErrorFormatter>();
 
+            builder.Services.AddSingleton<IHttpRequestStore, HttpRequestStore>();
+            builder.Services.AddSingleton<IFunctionFilter, HttpRequestMetadataStorageFilter>();
+            builder.Services.AddSingleton<IFunctionFilter, HttpParamAssignmentFilter>();
+            
+            builder.Services.AddSingleton<IHttpExceptionHandler, DefaultHttpExceptionHandler>();
+            DefaultHttpExceptionHandler.OutputRecursiveExceptionMessages = true;
+
+            builder.Services.AddSingleton<IILFunctionExceptionHandler, ILFunctionExceptionHandler>();
+            
             builder.Services.AddSingleton<IAuthorizedFunctionDiscoverer, AuthorizedFunctionDiscoverer>();
             builder.Services.AddSingleton<IFunctionFilter, HttpAuthorizationFilter>();
+
             builder.Services.AddSingleton<IJwtAuthenticator, JwtAuthenticator>(provider =>
             {
                 var options = provider.GetService<IOptions<HttpAuthenticationOptions>>();

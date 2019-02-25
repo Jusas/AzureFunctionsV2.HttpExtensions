@@ -56,17 +56,17 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
                 "Will attempt to find any Azure Functions (static async methods in static classes with 'FunctionNameAttribute'), " +
                 "and then augment them with IL instructions that call exception handling code if an exception gets thrown.");
 
-            var httpExtensionsAssemblyName = typeof(FunctionExceptionHandler).Assembly.FullName;
+            var httpExtensionsAssemblyName = typeof(ILFunctionExceptionHandler).Assembly.FullName;
             var referencedAsm = ModuleDefinition.AssemblyResolver.Resolve(AssemblyNameReference.Parse(httpExtensionsAssemblyName));
 
-            var rethrowerFunctionDefinition = referencedAsm.MainModule.GetType(typeof(FunctionExceptionHandler).FullName).GetMethods()
+            var rethrowerFunctionDefinition = referencedAsm.MainModule.GetType(typeof(ILFunctionExceptionHandler).FullName).GetMethods()
                 .First(m => m.Name == "RethrowStoredException");
 
             var rethrowerFunctionReference = ModuleDefinition.ImportReference(rethrowerFunctionDefinition);
 
 
             var functionExceptionHandlerDefinition = referencedAsm.MainModule
-                .GetType(typeof(FunctionExceptionHandler).FullName).GetMethods()
+                .GetType(typeof(ILFunctionExceptionHandler).FullName).GetMethods()
                 .First(m => m.Name == "HandleExceptionAndReturnResult");
             var functionExceptionHandlerReference =
                 ModuleDefinition.ImportReference(functionExceptionHandlerDefinition);
@@ -134,6 +134,8 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
                 // Insert a nop just to mark the block.
                 newInstructions = new[]
                 {
+                    Instruction.Create(OpCodes.Ldarg_0), 
+                    Instruction.Create(OpCodes.Ldfld, funcMethod.httpRequestFieldDefinition), 
                     Instruction.Create(OpCodes.Call, functionExceptionHandlerReference),
                     setResultInstruction,
                     Instruction.Create(OpCodes.Nop)

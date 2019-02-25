@@ -21,8 +21,14 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03 Examples", "03 Examples", "{FF3921F3-F04E-42B2-A8D0-F757051DEB76}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionsV2.HttpExtensions.Examples.FunctionApp", "AzureFunctionsV2.HttpExtensions.Examples.FunctionApp\AzureFunctionsV2.HttpExtensions.Examples.FunctionApp.csproj", "{B584E208-9F6A-47A7-996A-07F818A373C9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9D8768F6-D017-4440-9A47-B0EF92FD068A} = {9D8768F6-D017-4440-9A47-B0EF92FD068A}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionsV2.HttpExtensions.Examples.Authorization", "AzureFunctionsV2.HttpExtensions.Examples.Authorization\AzureFunctionsV2.HttpExtensions.Examples.Authorization.csproj", "{736F4CC3-6600-4B16-AF85-9A06A35D207D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9D8768F6-D017-4440-9A47-B0EF92FD068A} = {9D8768F6-D017-4440-9A47-B0EF92FD068A}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionsV2.HttpExtensions.Examples.Authorization.Startup", "AzureFunctionsV2.HttpExtensions.Examples.Authorization.Startup\AzureFunctionsV2.HttpExtensions.Examples.Authorization.Startup.csproj", "{8B5E8D25-81FE-4B15-A0D1-4B9B7DD14332}"
 EndProject

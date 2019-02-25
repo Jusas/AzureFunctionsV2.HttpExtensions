@@ -1,16 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using AzureFunctionsV2.HttpExtensions.Authorization;
+﻿using AzureFunctionsV2.HttpExtensions.Authorization;
 using AzureFunctionsV2.HttpExtensions.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Linq;
+using System.Web.Http;
+using Microsoft.Azure.WebJobs.Host;
 
 namespace AzureFunctionsV2.HttpExtensions.ILInjects
 {
-    public static class FunctionExceptionHandler
+    public class ILFunctionExceptionHandler : IILFunctionExceptionHandler
     {
+
+        private static IHttpExceptionHandler _httpExceptionHandler;
+
+        public ILFunctionExceptionHandler(IHttpExceptionHandler httpExceptionHandler)
+        {
+            _httpExceptionHandler = httpExceptionHandler;
+        }
+
         public static void RethrowStoredException(HttpRequest request)
         {
             // Simply rethrow a stored exception if one exists.
@@ -32,9 +40,17 @@ namespace AzureFunctionsV2.HttpExtensions.ILInjects
             }
         }
 
-        public static IActionResult HandleExceptionAndReturnResult(Exception e)
+        public static IActionResult HandleExceptionAndReturnResult(Exception exception, HttpRequest request)
         {
-            return new OkObjectResult(e);
+            if (_httpExceptionHandler != null)
+            {
+                var awaitable = _httpExceptionHandler.HandleException(
+                    (FunctionExecutingContext) request.HttpContext.Items["FunctionExecutingContext"],
+                    request, exception);
+                return awaitable.Result;
+            }
+
+            return new InternalServerErrorResult();
         }
     }
 }

@@ -49,7 +49,6 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
                 if (executingContext.Arguments.Values.Where(x => x != null).FirstOrDefault(
                         x => typeof(HttpRequest).IsAssignableFrom(x.GetType())) is HttpRequest httpRequest)
                 {
-                    _httpRequestStore.Set(executingContext.FunctionInstanceId, httpRequest);
                     foreach (var executingContextArgument in executingContext.Arguments)
                     {
                         var parameterName = executingContextArgument.Key;
@@ -397,8 +396,6 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
         /// <returns></returns>
         public async Task OnExecutedAsync(FunctionExecutedContext executedContext, CancellationToken cancellationToken)
         {
-            if(executedContext.FunctionResult.Succeeded)
-                _httpRequestStore.Remove(executedContext.FunctionInstanceId);
         }
     }
 }
