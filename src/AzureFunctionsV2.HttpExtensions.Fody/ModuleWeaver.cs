@@ -19,17 +19,17 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
                                                   "System.Runtime.CompilerServices.AsyncTaskMethodBuilder"));
         }
 
-        private int FindFirstFunctionInstructionIndex(IList<Instruction> instructions)
+        private ExceptionHandler FindFirstExceptionHandler(MethodBody methodBody)
         {
-            for (int i = 0; i < instructions.Count; i++)
-            {
-                if (instructions[i].OpCode == OpCodes.Nop)
-                {
-                    return i + 1;
-                }
-            }
-
-            return -1;
+            //for (int i = 0; i < instructions.Count; i++)
+            //{
+            //    if (instructions[i].OpCode == OpCodes.Nop)
+            //    {
+            //        return i + 1;
+            //    }
+            //}
+            return methodBody.ExceptionHandlers.FirstOrDefault();
+            
         }
 
         private int FindSetExceptionInstructionIndex(IList<Instruction> instructions)
@@ -85,13 +85,15 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
                     continue;
                 }
 
-                if (FindFirstFunctionInstructionIndex(instructions) == -1)
-                {
-                    LogWarning(
-                        "Couldn't find the beginning of the method (first nop OpCode), unable to apply exception handling " +
-                        $"for method '{funcMethod.sourceFunctionName}'.");
-                    continue;
-                }
+                
+
+                //if (FindFirstFunctionInstructionIndex(funcMethod.compilerGenerated.Body) == -1)
+                //{
+                //    LogWarning(
+                //        "Couldn't find the beginning of the method, unable to apply exception handling " +
+                //        $"for method '{funcMethod.sourceFunctionName}'.");
+                //    continue;
+                //}
 
                 if (FindSetExceptionInstructionIndex(instructions) == -1)
                 {
@@ -104,7 +106,8 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
                 // Unoptimize first, to not break things.
                 funcMethod.compilerGenerated.Body.SimplifyMacros();
 
-                int handlerCallInstructionIndex = FindFirstFunctionInstructionIndex(instructions);
+                var tryCatchBlock = FindFirstExceptionHandler(funcMethod.compilerGenerated.Body);
+                var handlerCallInstructionIndex = 0; // insert to the very beginning.
                 int setExceptionInstructionIndex = FindSetExceptionInstructionIndex(instructions);
                 var setResultInstruction = FindSetResultInstruction(instructions);
 
@@ -124,6 +127,7 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
                     instructions.Insert(handlerCallInstructionIndex, newInstruction);
                     handlerCallInstructionIndex++;
                     setExceptionInstructionIndex++;
+                    tryCatchBlock.TryStart = instructions.First();
                 }
 
                 // Remove the default generated SetException() call, as we don't want the async method to fail.
