@@ -10,6 +10,8 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.Mocks
 {
     public class MockHttpContext : HttpContext
     {
+
+
         public override void Abort()
         {
             throw new NotImplementedException();

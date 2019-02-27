@@ -8,6 +8,7 @@ using System.Xml.Serialization;
 using AzureFunctionsV2.HttpExtensions.Exceptions;
 using AzureFunctionsV2.HttpExtensions.Infrastructure;
 using AzureFunctionsV2.HttpExtensions.Tests.Helpers;
+using AzureFunctionsV2.HttpExtensions.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
@@ -341,11 +342,12 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.Infrastructure
         }
 
         /// <summary>
-        /// Checks that when a parameter is missing or null the ParameterRequiredException gets thrown.
+        /// Checks that when a parameter is missing or null the ParameterRequiredException gets thrown, but also
+        /// caught and stored into the HttpContext.
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public async Task Should_throw_exception_when_required_parameters_missing_or_null()
+        public async Task Should_store_exception_when_required_parameters_missing_or_null()
         {
             // Arrange
             var testContexts = FunctionContextsWithRequiredHttpParamsButWithNoData();
@@ -354,11 +356,14 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.Infrastructure
             foreach (var testContext in testContexts)
             {
                 var httpParamAssignmentFilter = new HttpParamAssignmentFilter(testContext.RequestStoreMock.Object, null);
-                await Assert.ThrowsAnyAsync<ParameterRequiredException>(async () =>
-                {
-                    await httpParamAssignmentFilter.OnExecutingAsync(testContext.FunctionExecutingContext,
-                        new CancellationToken());
-                });
+                await httpParamAssignmentFilter.OnExecutingAsync(testContext.FunctionExecutingContext,
+                    CancellationToken.None);
+                testContext.HttpContext.GetStoredExceptions().Count.Should().BeGreaterThan(0);
+                //await Assert.ThrowsAnyAsync<ParameterRequiredException>(async () =>
+                //{
+                //    await httpParamAssignmentFilter.OnExecutingAsync(testContext.FunctionExecutingContext,
+                //        new CancellationToken());
+                //});
             }
 
         }

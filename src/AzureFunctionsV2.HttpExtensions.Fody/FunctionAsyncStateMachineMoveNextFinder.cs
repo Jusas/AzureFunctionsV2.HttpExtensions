@@ -9,6 +9,14 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
 {
     public static class FunctionAsyncStateMachineMoveNextFinder
     {
+        /// <summary>
+        /// Find MoveNext() methods from compiler generated async state machines that belong
+        /// to an Azure Function (static methods in static classes, having FunctionNameAttribute
+        /// and HttpRequest parameter in the method signature.
+        /// </summary>
+        /// <param name="moduleDefinition"></param>
+        /// <param name="log"></param>
+        /// <returns></returns>
         public static List<(MethodDefinition compilerGenerated, FieldDefinition httpRequestFieldDefinition, string sourceFunctionName)> Find(ModuleDefinition moduleDefinition,
            Action<string> log)
         {
@@ -63,31 +71,15 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
 
                     var ctorParamIndex = functionMethod.Parameters.IndexOf(httpRequestParam);
                     log("  - Index of ctor HttpRequest param is " + ctorParamIndex);
-                    // After instantiating the state machine (newobj instr with the operand of type matchingStateMachineType)
-                    // expected: newobj, stloc, ldloc
-                    // ldarg at parameter index
-                    // stfld for the newly created field
-
-                    // WHEN OPTIMIZED:
-                    //IL_0000: ldloca.s V_0
-                    //IL_0002: call valuetype[System.Threading.Tasks]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1 < !0/*class [Microsoft.AspNetCore.Mvc.Abstractions]Microsoft.AspNetCore.Mvc.IActionResult*/> valuetype[System.Threading.Tasks]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1 <class [Microsoft.AspNetCore.Mvc.Abstractions] Microsoft.AspNetCore.Mvc.IActionResult>::Create()
-                    //IL_0007: stfld valuetype[System.Threading.Tasks]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<class [Microsoft.AspNetCore.Mvc.Abstractions] Microsoft.AspNetCore.Mvc.IActionResult> AzureFunctionsV2.HttpExtensions.Examples.Authorization.AuthorizedFuncs/'<BasicAuthenticatedFunc>d__0'::'<>t__builder'
-                    //IL_000c: ldloca.s V_0
-
-                    // WHEN NOT OPTIMIZED:
-                    //IL_0000: newobj instance void AzureFunctionsV2.HttpExtensions.Tests.FunctionApp.AuthTests / '<AuthTest1>d__0'::.ctor()
-                    //IL_0005: stloc.0      // V_0
-                    //IL_0006: ldloc.0      // V_0
-
+                    
                     var localStateMachineVar = functionMethod.Body.Variables.First(v => v.VariableType == matchingStateMachineType);
                     var localStateMachineVarIndex = functionMethod.Body.Variables.IndexOf(localStateMachineVar);
                     var instructionIndex = 0;
                     var newInstructions = new[]
                     {
-                        // ldloc load the local that holds the state machine instance.
+                        // load the address of the local that holds the state machine instance.
                         functionMethod.Body.GetILProcessor().Create(OpCodes.Ldloca, localStateMachineVarIndex),
                         functionMethod.Body.GetILProcessor().Create(OpCodes.Ldarg, ctorParamIndex),
-                        //Instruction.Create(OpCodes.Ldarg_0),
                         Instruction.Create(OpCodes.Stfld, httpRequestFieldDef)
                     };
                     foreach (var instruction in newInstructions)

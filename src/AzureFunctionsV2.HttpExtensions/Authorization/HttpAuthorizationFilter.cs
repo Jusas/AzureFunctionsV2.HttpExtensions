@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AzureFunctionsV2.HttpExtensions.Exceptions;
 using AzureFunctionsV2.HttpExtensions.Infrastructure;
+using AzureFunctionsV2.HttpExtensions.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Options;
@@ -137,9 +138,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
                 var httpRequest = executingContext.Arguments.Values.FirstOrDefault(
                         x => typeof(HttpRequest).IsAssignableFrom(x.GetType()))
                     as HttpRequest;
-                if(httpRequest.HttpContext.Items == null)
-                    httpRequest.HttpContext.Items = new Dictionary<object, object>();
-                httpRequest.HttpContext.Items.Add(nameof(HttpAuthorizationFilter), e);
+                httpRequest.HttpContext.StoreExceptionItem(e);
             }
         }
 

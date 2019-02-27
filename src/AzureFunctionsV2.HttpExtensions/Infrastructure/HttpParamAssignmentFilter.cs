@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using AzureFunctionsV2.HttpExtensions.Annotations;
 using AzureFunctionsV2.HttpExtensions.Exceptions;
+using AzureFunctionsV2.HttpExtensions.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Primitives;
@@ -128,10 +129,7 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
                 var httpRequest = executingContext.Arguments.Values.FirstOrDefault(
                         x => typeof(HttpRequest).IsAssignableFrom(x.GetType()))
                     as HttpRequest;
-                if (httpRequest.HttpContext.Items == null)
-                    httpRequest.HttpContext.Items = new Dictionary<object, object>();
-                httpRequest.HttpContext.Items.Add(nameof(HttpParamAssignmentFilter), e);
-                throw;
+                httpRequest.HttpContext.StoreExceptionItem(e);
             }
         }
 

@@ -41,13 +41,7 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.Helpers
             FunctionExecutingContext = new FunctionExecutingContext(ArgumentsDictionary, new Dictionary<string, object>(),
                 FunctionContextId, functionName, MockedLogger.Object);
         }
-
-        public void GenerateExceptionContext(Exception e)
-        {
-            FunctionExceptionContext = new FunctionExceptionContext(Guid.Empty, "func", 
-                MockedLogger.Object, ExceptionDispatchInfo.Capture(e), new Dictionary<string, object>());
-        }
-
+        
         public HttpUser AddUserParam(string argumentName)
         {
             var arg = new HttpUser();

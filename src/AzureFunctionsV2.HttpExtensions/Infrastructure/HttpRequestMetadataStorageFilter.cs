@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AzureFunctionsV2.HttpExtensions.ILInjects;
+using AzureFunctionsV2.HttpExtensions.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Host;
 
@@ -19,7 +20,7 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
         private IHttpRequestStore _httpRequestStore;
 
         public HttpRequestMetadataStorageFilter(IHttpRequestStore httpRequestStore,
-            IILFunctionExceptionHandler ilFunctionExceptionHandler /* so that ILFunctionExceptionHandler gets initialized */)
+            IILFunctionExceptionHandler ilFunctionExceptionHandler /* just so that ILFunctionExceptionHandler gets initialized */)
         {
             _httpRequestStore = httpRequestStore;
         }
@@ -31,7 +32,7 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
                 x => typeof(HttpRequest).IsAssignableFrom(x.GetType())) is HttpRequest httpRequest)
             {
                 _httpRequestStore.Set(executingContext.FunctionInstanceId, httpRequest);
-                httpRequest.HttpContext.Items.Add("FunctionExecutingContext", executingContext);
+                httpRequest.HttpContext.StoreFunctionExecutingContext(executingContext);
             }
         }
 

@@ -21,15 +21,7 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
 
         private ExceptionHandler FindFirstExceptionHandler(MethodBody methodBody)
         {
-            //for (int i = 0; i < instructions.Count; i++)
-            //{
-            //    if (instructions[i].OpCode == OpCodes.Nop)
-            //    {
-            //        return i + 1;
-            //    }
-            //}
             return methodBody.ExceptionHandlers.FirstOrDefault();
-            
         }
 
         private int FindSetExceptionInstructionIndex(IList<Instruction> instructions)
@@ -85,16 +77,6 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
                     continue;
                 }
 
-                
-
-                //if (FindFirstFunctionInstructionIndex(funcMethod.compilerGenerated.Body) == -1)
-                //{
-                //    LogWarning(
-                //        "Couldn't find the beginning of the method, unable to apply exception handling " +
-                //        $"for method '{funcMethod.sourceFunctionName}'.");
-                //    continue;
-                //}
-
                 if (FindSetExceptionInstructionIndex(instructions) == -1)
                 {
                     LogWarning(
@@ -106,7 +88,7 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
                 // Unoptimize first, to not break things.
                 funcMethod.compilerGenerated.Body.SimplifyMacros();
 
-                var tryCatchBlock = FindFirstExceptionHandler(funcMethod.compilerGenerated.Body);
+                var tryCatchBlock = funcMethod.compilerGenerated.Body.ExceptionHandlers.First();
                 var handlerCallInstructionIndex = 0; // insert to the very beginning.
                 int setExceptionInstructionIndex = FindSetExceptionInstructionIndex(instructions);
                 var setResultInstruction = FindSetResultInstruction(instructions);
