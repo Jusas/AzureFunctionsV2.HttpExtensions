@@ -6,6 +6,9 @@ using Microsoft.Azure.WebJobs.Host;
 
 namespace AzureFunctionsV2.HttpExtensions.Utils
 {
+    /// <summary>
+    /// Some extensions for HttpContext, used by HttpExtensions.
+    /// </summary>
     public static class HttpContextExtensions
     {
         private static readonly string ExceptionListKey = "HttpExtensionsStoredExceptions";

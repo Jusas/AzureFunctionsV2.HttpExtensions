@@ -23,14 +23,16 @@ namespace AzureFunctionsV2.HttpExtensions.Tests
         {
             // Arrange
             var mockedFunctionRequestContext = new MockedFunctionRequestContext();
-            // TODO use above in parameter and check the guid
+            mockedFunctionRequestContext.CreateFunctionExecutingContextWithJustName("func");
+
             var metadataStorageFilter = new HttpRequestMetadataStorageFilter(mockedFunctionRequestContext.RequestStoreMock.Object, null);
 
             // Act
-            await metadataStorageFilter.OnExecutingAsync(executingContext, new CancellationToken());
+            await metadataStorageFilter.OnExecutingAsync(mockedFunctionRequestContext.FunctionExecutingContext, new CancellationToken());
 
             // Assert
-            mockedFunctionRequestContext.RequestStoreMock.Verify(x => x.Set(Guid.Empty, mockedFunctionRequestContext.HttpRequest), Times.Once);
+            mockedFunctionRequestContext.RequestStoreMock.Verify(x => x.Set(mockedFunctionRequestContext.FunctionContextId, 
+                mockedFunctionRequestContext.HttpRequest), Times.Once);
             mockedFunctionRequestContext.HttpContext.GetStoredFunctionExecutingContext().Should().NotBeNull();
         }
 

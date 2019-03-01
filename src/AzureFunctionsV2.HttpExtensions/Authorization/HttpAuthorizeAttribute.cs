@@ -13,6 +13,9 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
         QueryApiKey
     }
 
+    /// <summary>
+    /// Attribute that indicates that the Function requires authentication/authorization.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
     public class HttpAuthorizeAttribute : Attribute
     {
@@ -25,6 +28,9 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
         {
         }
 
+        /// <summary>
+        /// The required authentication scheme.
+        /// </summary>
         public Scheme Scheme { get; set; }
     }
 }

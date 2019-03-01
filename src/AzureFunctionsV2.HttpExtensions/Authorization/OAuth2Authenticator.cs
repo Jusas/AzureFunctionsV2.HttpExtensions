@@ -9,6 +9,9 @@ using Microsoft.Extensions.Options;
 
 namespace AzureFunctionsV2.HttpExtensions.Authorization
 {
+    /// <summary>
+    /// OAuth2 authenticator.
+    /// </summary>
     public class OAuth2Authenticator : IOAuth2Authenticator
     {
         private readonly OAuth2AuthenticationParameters _authenticationParameters;
@@ -18,7 +21,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
             _authenticationParameters = httpAuthOptions?.Value?.OAuth2Authentication;
         }
 
-        public async Task<ClaimsPrincipal> Authenticate(string token, HttpRequest request, IList<HttpAuthorizeAttribute> attributes)
+        public async Task<ClaimsPrincipal> AuthenticateAndAuthorize(string token, HttpRequest request, IList<HttpAuthorizeAttribute> attributes)
         {
             if (_authenticationParameters?.CustomAuthorizationFilter == null)
                 throw new InvalidOperationException("OAuth2AuthenticationParameters have not been configured");

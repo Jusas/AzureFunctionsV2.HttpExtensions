@@ -81,11 +81,12 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.Authentication
 
 
             var options = new Mock<IOptions<HttpAuthenticationOptions>>();
+            bool wasRun = false;
             options.SetupGet(x => x.Value).Returns(new HttpAuthenticationOptions()
             {
                 JwtAuthentication = new JwtAuthenticationParameters()
                 {
-                    AuthorizationFilter = (principal, token, attributes) => throw new HttpAuthorizationException("custom")
+                    CustomAuthorizationFilter = async (principal, token, attributes) => wasRun = true
                 }
             });
             var authFilter = new HttpAuthorizationFilter(discoverer.Object, options.Object, jwtAuthenticator.Object, null, null, null);
@@ -95,10 +96,9 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.Authentication
             var userParam = mockedFunctionRequestContext.AddUserParam("user");
             mockedFunctionRequestContext.CreateFunctionExecutingContextWithJustName("func");
 
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<HttpAuthorizationException>(async () =>
-                await authFilter.OnExecutingAsync(mockedFunctionRequestContext.FunctionExecutingContext, CancellationToken.None));
-            Assert.Equal("custom", exception.Message);
+            // Act
+            await authFilter.OnExecutingAsync(mockedFunctionRequestContext.FunctionExecutingContext, CancellationToken.None);
+            Assert.True(wasRun);
         }
 
         [Fact]

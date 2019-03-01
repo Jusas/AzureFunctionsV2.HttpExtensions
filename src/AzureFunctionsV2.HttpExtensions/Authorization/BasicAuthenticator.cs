@@ -7,6 +7,10 @@ using Microsoft.Extensions.Options;
 
 namespace AzureFunctionsV2.HttpExtensions.Authorization
 {
+    /// <summary>
+    /// The Basic authenticator.
+    /// Contains the actual authentication logic.
+    /// </summary>
     public class BasicAuthenticator : IBasicAuthenticator
     {
         private readonly BasicAuthenticationParameters _authenticationParameters;
@@ -26,7 +30,16 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
 
             authorizationHeader = authorizationHeader.Substring(6);
 
-            var credentialBytes = Convert.FromBase64String(authorizationHeader);
+            byte[] credentialBytes;
+            try
+            {
+                credentialBytes = Convert.FromBase64String(authorizationHeader);
+            }
+            catch (Exception e)
+            {
+                throw new HttpAuthenticationException("Failed to read the authorization header from base64 string", e);
+            }
+
             // Assume UTF-8.
             var credentials = Encoding.UTF8.GetString(credentialBytes);
             var usernamePassword = credentials.Split(':');

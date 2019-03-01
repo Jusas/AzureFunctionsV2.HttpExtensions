@@ -297,25 +297,5 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.Infrastructure
             Assert.Equal("bodyValue", bodyParam.Value);
         }
 
-        /// <summary>
-        /// Verify that OnExecutedAsync will clean up and remove the HttpRequest from request store when
-        /// the invocation is completed.
-        /// </summary>
-        /// <returns></returns>
-        [Fact]
-        public async Task Should_remove_http_request_from_request_store_after_function_invocation()
-        {
-            // Arrange
-            var mockedFunctionRequestContext = new MockedFunctionRequestContext();
-            var executedContext = new FunctionExecutedContext(new Dictionary<string, object>(), new Dictionary<string, object>(),
-                Guid.Empty, "func", new Mock<ILogger>().Object, new FunctionResult(true));
-            var httpParamAssignmentFilter = new HttpParamAssignmentFilter(mockedFunctionRequestContext.RequestStoreMock.Object, null);
-
-            // Act
-            await httpParamAssignmentFilter.OnExecutedAsync(executedContext, new CancellationToken());
-
-            // Assert
-            mockedFunctionRequestContext.RequestStoreMock.Verify(x => x.Remove(Guid.Empty), Times.Once);
-        }
     }
 }

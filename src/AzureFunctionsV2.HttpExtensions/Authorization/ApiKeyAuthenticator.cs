@@ -5,6 +5,10 @@ using Microsoft.Extensions.Options;
 
 namespace AzureFunctionsV2.HttpExtensions.Authorization
 {
+    /// <summary>
+    /// The API key authenticator.
+    /// Contains the actual authentication logic.
+    /// </summary>
     public class ApiKeyAuthenticator : IApiKeyAuthenticator
     {
         private readonly ApiKeyAuthenticationParameters _authenticationParameters;

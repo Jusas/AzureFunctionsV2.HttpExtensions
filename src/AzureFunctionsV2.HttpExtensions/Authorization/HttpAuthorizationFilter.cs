@@ -14,6 +14,9 @@ using Microsoft.Extensions.Options;
 
 namespace AzureFunctionsV2.HttpExtensions.Authorization
 {
+    /// <summary>
+    /// The authorization filter that handles authentication/authorization before the Function gets invoked.
+    /// </summary>
     public class HttpAuthorizationFilter : IFunctionFilter, IFunctionInvocationFilter
     {
         private readonly IJwtAuthenticator _jwtAuthenticator;
@@ -81,9 +84,9 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
                             httpRequest.Headers["Authorization"].ToString());
 
                         // Call the custom filter if one exists. It is expected to throw if authorization fails.
-                        if (_options?.JwtAuthentication?.AuthorizationFilter != null)
+                        if (_options?.JwtAuthentication?.CustomAuthorizationFilter != null)
                         {
-                            await _options.JwtAuthentication.AuthorizationFilter(claimsPrincipal, securityToken, authorizeAttributes);
+                            await _options.JwtAuthentication.CustomAuthorizationFilter(claimsPrincipal, securityToken, authorizeAttributes);
                         }
 
                         var claimsPrincipalFunctionArg = executingContext.Arguments.Values.FirstOrDefault(
@@ -101,7 +104,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
                             throw new HttpAuthenticationException("Authorization header is missing");
 
                         // Bearer token can contain anything; leave it to the OAuth2Authenticator to handle.
-                        var userClaimsPrincipal = await _oAuth2Authenticator.Authenticate(
+                        var userClaimsPrincipal = await _oAuth2Authenticator.AuthenticateAndAuthorize(
                             httpRequest.Headers["Authorization"].ToString(), httpRequest,
                             authorizeAttributes.Where(a => a.Scheme == Scheme.OAuth2).ToList());
 

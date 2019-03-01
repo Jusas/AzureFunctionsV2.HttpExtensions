@@ -37,7 +37,7 @@ namespace AzureFunctionsV2.HttpExtensions.Examples.Authorization.Startup
                         ValidateIssuerSigningKey = true,
                         NameClaimType = ClaimTypes.NameIdentifier
                     },
-                    AuthorizationFilter = async (principal, token, attributes) => { }
+                    CustomAuthorizationFilter = async (principal, token, attributes) => { }
                 };
             });
         }

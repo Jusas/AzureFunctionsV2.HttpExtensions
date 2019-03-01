@@ -9,6 +9,9 @@ using Mono.Cecil.Rocks;
 
 namespace AzureFunctionsV2.HttpExtensions.Fody
 {
+    /// <summary>
+    /// The Fody Weaver that 
+    /// </summary>
     public class ModuleWeaver : BaseModuleWeaver
     {
         private Instruction FindSetResultInstruction(IEnumerable<Instruction> instructions)

@@ -35,7 +35,7 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
                         m.HasCustomAttributes &&
                         m.CustomAttributes.Any(a => a.AttributeType.Name == "FunctionNameAttribute") &&
                         m.CustomAttributes.Any(a => a.AttributeType.Name == "AsyncStateMachineAttribute") &&
-                        m.Parameters.Any(p => p.ParameterType.Name == "HttpRequest"));
+                        m.Parameters.Any(p => p.ParameterType.Name == "HttpRequest" && p.CustomAttributes.Any(ca => ca.AttributeType.Name == "HttpTriggerAttribute")));
                     if (functionLikeMethods.Any())
                         temp.AddRange(functionLikeMethods);
                 }
@@ -44,7 +44,7 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
             foreach (var functionMethod in temp)
             {
 
-                log("Found Function " + functionMethod.FullName);
+                log("Found Function " + functionMethod.Name);
                 var compilerGeneratedStateMachineType = functionMethod.Body.Variables.FirstOrDefault(v =>
                         v.VariableType.Resolve().Interfaces.Any(i => i.InterfaceType.Name == "IAsyncStateMachine"))
                     ?.VariableType;
@@ -63,14 +63,14 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
                 if (httpRequestFieldInStateMachineType == null)
                 {
                     log("  - No HttpRequest field present in the state machine even though it is in the signature; most likely optimized out. Inserting it in.");
-                    // continue;
+
                     var httpRequestParam = functionMethod.Parameters.First(p => p.ParameterType.Name == "HttpRequest");
                     var httpRequestFieldDef = new FieldDefinition(httpRequestParam.Name, FieldAttributes.Public, httpRequestParam.ParameterType);
                     httpRequestFieldInStateMachineType = httpRequestFieldDef;
                     matchingStateMachineType.Fields.Add(httpRequestFieldDef);
 
                     var ctorParamIndex = functionMethod.Parameters.IndexOf(httpRequestParam);
-                    log("  - Index of ctor HttpRequest param is " + ctorParamIndex);
+                    // log("  - Index of ctor HttpRequest param is " + ctorParamIndex);
                     
                     var localStateMachineVar = functionMethod.Body.Variables.First(v => v.VariableType == matchingStateMachineType);
                     var localStateMachineVarIndex = functionMethod.Body.Variables.IndexOf(localStateMachineVar);
@@ -90,7 +90,7 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
 
                 }
 
-                functionMethodDefinitions.Add((moveNextMethod, httpRequestFieldInStateMachineType, functionMethod.FullName));
+                functionMethodDefinitions.Add((moveNextMethod, httpRequestFieldInStateMachineType, functionMethod.Name));
 
             }
 

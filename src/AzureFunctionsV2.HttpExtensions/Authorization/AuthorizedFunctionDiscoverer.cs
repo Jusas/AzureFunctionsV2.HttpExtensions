@@ -16,7 +16,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
         /// Scans assemblies that have been loaded, specifically the ones that refer to this
         /// assembly, and then looks for the attribute in static class static methods.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A Dictionary of function name and tuple of the corresponding MethodInfo and list of HttpAuthorizeAttributes.</returns>
         public Dictionary<string, (MethodInfo, IList<HttpAuthorizeAttribute>)> GetFunctions()
         {
             // Find functions from the assemblies. Criteria:
@@ -26,6 +26,7 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
             // - member has HttpAuthorizeAttribute
 
             var candidateAssemblies = AppDomain.CurrentDomain.GetAssemblies()
+                    .Where(p => !p.IsDynamic)
                     .Where(a => a.GetReferencedAssemblies()
                         .Any(r => r.Name == Assembly.GetAssembly(GetType()).GetName().Name));
 

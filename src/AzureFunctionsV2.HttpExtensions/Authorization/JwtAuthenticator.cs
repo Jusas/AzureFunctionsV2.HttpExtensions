@@ -47,16 +47,16 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
                 throw new HttpAuthenticationException("Expected Bearer token");
             jwtToken = jwtToken.Substring(7);
 
-            if (_jwtValidationParameters is OpenIdConnectJwtValidationParameters oidcParams &&
-                _jwtValidationParameters.IssuerSigningKeys == null)
-            {
-                var config = await _manager.GetConfigurationAsync(CancellationToken.None);
-                oidcParams.ValidIssuer = config.Issuer;
-                oidcParams.IssuerSigningKeys = config.SigningKeys;
-            }
-
             try
             {
+                if (_jwtValidationParameters is OpenIdConnectJwtValidationParameters oidcParams &&
+                    _jwtValidationParameters.IssuerSigningKeys == null)
+                {
+                    var config = await _manager.GetConfigurationAsync(CancellationToken.None);
+                    oidcParams.ValidIssuer = config.Issuer;
+                    oidcParams.IssuerSigningKeys = config.SigningKeys;
+                }
+
                 var claimsPrincipal = _handler.ValidateToken(jwtToken, _jwtValidationParameters, out var validatedToken);
                 return (claimsPrincipal, validatedToken);
             }

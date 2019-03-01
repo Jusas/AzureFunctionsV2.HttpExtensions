@@ -26,7 +26,7 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.Authentication
             // Act
 
             // Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await (new OAuth2Authenticator(null).Authenticate("", null, null)));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await (new OAuth2Authenticator(null).AuthenticateAndAuthorize("", null, null)));
         }
 
         [Fact]
@@ -44,7 +44,7 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.Authentication
             // Act
 
             // Assert
-            await Assert.ThrowsAsync<HttpAuthenticationException>(async () => await (new OAuth2Authenticator(config.Object).Authenticate("foo", null, null)));
+            await Assert.ThrowsAsync<HttpAuthenticationException>(async () => await (new OAuth2Authenticator(config.Object).AuthenticateAndAuthorize("foo", null, null)));
         }
 
         [Fact]
@@ -64,7 +64,7 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.Authentication
 
             // Act
             var oauth2Authenticator = new OAuth2Authenticator(config.Object);
-            var result = await oauth2Authenticator.Authenticate("Bearer foo", httpRequest, authAttributes);
+            var result = await oauth2Authenticator.AuthenticateAndAuthorize("Bearer foo", httpRequest, authAttributes);
             
             // Assert
             Assert.NotNull(result);
@@ -87,7 +87,7 @@ namespace AzureFunctionsV2.HttpExtensions.Tests.Authentication
 
             // Act
             var oauth2Authenticator = new OAuth2Authenticator(config.Object);
-            await Assert.ThrowsAsync<HttpAuthorizationException>(async () => await oauth2Authenticator.Authenticate("Bearer foo", httpRequest, authAttributes));
+            await Assert.ThrowsAsync<HttpAuthorizationException>(async () => await oauth2Authenticator.AuthenticateAndAuthorize("Bearer foo", httpRequest, authAttributes));
 
         }
     }
