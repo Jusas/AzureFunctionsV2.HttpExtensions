@@ -10,16 +10,69 @@ using Mono.Cecil.Rocks;
 namespace AzureFunctionsV2.HttpExtensions.Fody
 {
     /// <summary>
-    /// The Fody Weaver that 
+    /// The Fody Weaver that inserts the extra exception swallowing IL assembly code inside each HTTP Function.
     /// </summary>
     public class ModuleWeaver : BaseModuleWeaver
     {
-        private Instruction FindSetResultInstruction(IEnumerable<Instruction> instructions)
+        /// <summary>
+        /// Find or manufacture a SetResult() instruction.
+        /// If we're dealing with a normal try-catch block, we'll find the SetResult easily and can just
+        /// refer to the existing instruction. If not, we need to instantiate a new instruction.
+        /// This is a more complex affair; we try to find SetException() (this happens when optimization
+        /// removes SetResult() completely, ie. in cases where a method always throws) instead, to
+        /// get a reference to the AsyncTaskMethodBuilder class and work from there to monkey up
+        /// an generic instance of the SetResult() method we want to call.
+        /// Tad bit ugly, but it works.
+        /// </summary>
+        /// <param name="instructions"></param>
+        /// <param name="stateMachineType"></param>
+        /// <returns></returns>
+        private Instruction FindOrCreateSetResultInstruction(IEnumerable<Instruction> instructions, TypeDefinition stateMachineType)
         {
-            return instructions.LastOrDefault(inst => inst.Operand is MethodReference mr &&
+            var existingInstruction = instructions.LastOrDefault(inst => inst.Operand is MethodReference mr &&
                                               mr.Name == "SetResult" &&
                                               mr.DeclaringType.FullName.StartsWith(
                                                   "System.Runtime.CompilerServices.AsyncTaskMethodBuilder"));
+
+            if (existingInstruction != null)
+                return existingInstruction;
+
+            var setException = instructions.LastOrDefault(inst => inst.Operand is MethodReference mr &&
+                                               mr.Name == "SetException" &&
+                                               mr.DeclaringType.FullName.StartsWith(
+                                                   "System.Runtime.CompilerServices.AsyncTaskMethodBuilder"));
+            if (setException != null && setException.Operand is MethodReference setExceptionOperand)
+            {
+                try
+                {
+                    var tBuilderType = stateMachineType.Fields.FirstOrDefault(f => f.Name.EndsWith("t__builder"))
+                        .FieldType;
+
+                    var asyncTaskMethodBuilderType = setExceptionOperand.DeclaringType.Resolve();
+                    var iActionResultType =
+                        ((GenericInstanceType) tBuilderType).GenericArguments.FirstOrDefault().Resolve();
+
+                    var genericAsyncTaskMethodBuilderType =
+                        asyncTaskMethodBuilderType.MakeGenericInstanceType(iActionResultType);
+
+                    var setResult = Helpers.MakeHostInstanceGeneric(
+                        genericAsyncTaskMethodBuilderType.Resolve().Methods.First(m => m.Name == "SetResult"),
+                        iActionResultType);
+
+                    if (setResult != null)
+                    {
+                        var setResultMethodReference = ModuleDefinition.ImportReference(setResult);
+                        return Instruction.Create(OpCodes.Call, setResultMethodReference);
+                    }
+                }
+                catch (Exception e)
+                {
+                    return null;
+                }
+
+            }
+
+            return null;
         }
 
         private ExceptionHandler FindFirstExceptionHandler(MethodBody methodBody)
@@ -70,13 +123,13 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
 
             foreach (var funcMethod in functionMethods)
             {
-                var instructions = funcMethod.compilerGenerated.Body.Instructions;
+                var instructions = funcMethod.CompilerGeneratedMoveNext.Body.Instructions;
 
-                if (FindSetResultInstruction(instructions) == null)
+                if (FindOrCreateSetResultInstruction(instructions, funcMethod.CompilerGeneratedStateMachineType) == null)
                 {
-                    LogWarning("No SetResult instruction found in method body, will not apply exception handling " +
-                               $"for method '{funcMethod.sourceFunctionName}' " +
-                               "- this method is probably always throwing.");
+                    LogWarning("No SetResult instruction found in method body and failed to create a reference to it, will not apply exception handling " +
+                               $"for method '{funcMethod.SourceFunctionName}' " +
+                               "- this method will return empty 500 results upon exceptions");
                     continue;
                 }
 
@@ -84,19 +137,19 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
                 {
                     LogWarning(
                         "Couldn't find the SetException instruction in the method, unable to apply exception handling " +
-                        $"for method '{funcMethod.sourceFunctionName}'.");
+                        $"for method '{funcMethod.SourceFunctionName}'.");
                     continue;
                 }
 
                 // Unoptimize first, to not break things.
-                funcMethod.compilerGenerated.Body.SimplifyMacros();
+                funcMethod.CompilerGeneratedMoveNext.Body.SimplifyMacros();
 
-                var tryCatchBlock = funcMethod.compilerGenerated.Body.ExceptionHandlers.First();
+                var tryCatchBlock = funcMethod.CompilerGeneratedMoveNext.Body.ExceptionHandlers.First();
                 var handlerCallInstructionIndex = 0; // insert to the very beginning.
                 int setExceptionInstructionIndex = FindSetExceptionInstructionIndex(instructions);
-                var setResultInstruction = FindSetResultInstruction(instructions);
+                var setResultInstruction = FindOrCreateSetResultInstruction(instructions, funcMethod.CompilerGeneratedStateMachineType);
 
-                LogInfo($"Augmenting function '{funcMethod.sourceFunctionName}' with exception handling logic.");
+                LogInfo($"Augmenting function '{funcMethod.SourceFunctionName}' with exception handling logic.");
 
                 // Insert the call to rethrower to the beginning, which will basically rethrow any
                 // exception that the function filters may have handled with a try-catch and stored.                
@@ -104,7 +157,7 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
                 var newInstructions = new[]
                 {
                     Instruction.Create(OpCodes.Ldarg_0),
-                    Instruction.Create(OpCodes.Ldfld, funcMethod.httpRequestFieldDefinition),
+                    Instruction.Create(OpCodes.Ldfld, funcMethod.HttpRequestFieldDefinition),
                     Instruction.Create(OpCodes.Call, rethrowerFunctionReference)
                 };
                 foreach (var newInstruction in newInstructions)
@@ -124,7 +177,7 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
                 newInstructions = new[]
                 {
                     Instruction.Create(OpCodes.Ldarg_0), 
-                    Instruction.Create(OpCodes.Ldfld, funcMethod.httpRequestFieldDefinition), 
+                    Instruction.Create(OpCodes.Ldfld, funcMethod.HttpRequestFieldDefinition), 
                     Instruction.Create(OpCodes.Call, functionExceptionHandlerReference),
                     setResultInstruction,
                     Instruction.Create(OpCodes.Nop)
@@ -136,7 +189,7 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
                 }
 
                 // Re-optimize again.
-                funcMethod.compilerGenerated.Body.OptimizeMacros();
+                funcMethod.CompilerGeneratedMoveNext.Body.OptimizeMacros();
 
             }
 

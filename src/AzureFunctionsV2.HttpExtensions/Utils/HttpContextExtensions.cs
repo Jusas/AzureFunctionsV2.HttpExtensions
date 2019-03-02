@@ -21,10 +21,7 @@ namespace AzureFunctionsV2.HttpExtensions.Utils
 
             if (!context.Items.ContainsKey(ExceptionListKey))
             {
-                context.Items = new Dictionary<object, object>()
-                {
-                    {ExceptionListKey, new List<Exception>() {e} }
-                };
+                context.Items.Add(ExceptionListKey, new List<Exception>() { e });
             }
             else
             {

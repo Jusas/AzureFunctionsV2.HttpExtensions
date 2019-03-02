@@ -1,1 +1,1 @@
-nuget pack AzureFunctionsV2.HttpExtensions.csproj
+nuget pack AzureFunctionsV2.HttpExtensions.csproj -IncludeReferencedProjects

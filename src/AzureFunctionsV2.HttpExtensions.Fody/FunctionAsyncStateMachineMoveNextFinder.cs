@@ -9,6 +9,15 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
 {
     public static class FunctionAsyncStateMachineMoveNextFinder
     {
+
+        public class AsyncStateMachineContext
+        {
+            public MethodDefinition CompilerGeneratedMoveNext { get; set; }
+            public FieldDefinition HttpRequestFieldDefinition { get; set; }
+            public string SourceFunctionName { get; set; }
+            public TypeDefinition CompilerGeneratedStateMachineType { get; set; }
+        }
+
         /// <summary>
         /// Find MoveNext() methods from compiler generated async state machines that belong
         /// to an Azure Function (static methods in static classes, having FunctionNameAttribute
@@ -17,14 +26,14 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
         /// <param name="moduleDefinition"></param>
         /// <param name="log"></param>
         /// <returns></returns>
-        public static List<(MethodDefinition compilerGenerated, FieldDefinition httpRequestFieldDefinition, string sourceFunctionName)> Find(ModuleDefinition moduleDefinition,
+        public static List<AsyncStateMachineContext> Find(ModuleDefinition moduleDefinition,
            Action<string> log)
         {
             // Find static class functions, that have a specific attribute.
             // Try to get its System.Runtime.CompilerServices.AsyncStateMachineAttribute, and get its Type.
             // Get its MoveNext(), and then proceed as with AsyncErrorHandler.
-            List<(MethodDefinition, FieldDefinition, string)> functionMethodDefinitions =
-                new List<(MethodDefinition compilerGenerated, FieldDefinition httpRequestFieldDefinition, string sourceFunctionName)>();
+            List<AsyncStateMachineContext> functionMethodDefinitions =
+                new List<AsyncStateMachineContext>();
 
             List<MethodDefinition> temp = new List<MethodDefinition>();
             foreach (var typeDefinition in moduleDefinition.Types)
@@ -90,7 +99,14 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
 
                 }
 
-                functionMethodDefinitions.Add((moveNextMethod, httpRequestFieldInStateMachineType, functionMethod.Name));
+                // functionMethodDefinitions.Add((moveNextMethod, httpRequestFieldInStateMachineType, functionMethod.Name));
+                functionMethodDefinitions.Add(new AsyncStateMachineContext()
+                {
+                    CompilerGeneratedMoveNext = moveNextMethod,
+                    SourceFunctionName = functionMethod.Name,
+                    HttpRequestFieldDefinition = httpRequestFieldInStateMachineType,
+                    CompilerGeneratedStateMachineType = matchingStateMachineType
+                });
 
             }
 

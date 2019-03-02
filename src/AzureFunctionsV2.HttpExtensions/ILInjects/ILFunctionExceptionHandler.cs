@@ -60,7 +60,7 @@ namespace AzureFunctionsV2.HttpExtensions.ILInjects
             if (_httpExceptionHandler != null)
             {
                 var awaitable = _httpExceptionHandler.HandleException(
-                    (FunctionExecutingContext) request.HttpContext.Items["FunctionExecutingContext"],
+                    request.HttpContext.GetStoredFunctionExecutingContext(),
                     request, exception);
                 return awaitable.Result;
             }
