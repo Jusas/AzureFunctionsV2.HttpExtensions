@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>AzureFunctionsV2.HttpExtensions</id>
-    <version>1.3.0</version>
+    <version>1.3.1</version>
     <authors>Jussi Saarivirta</authors>
     <owners>Jussi Saarivirta</owners>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
