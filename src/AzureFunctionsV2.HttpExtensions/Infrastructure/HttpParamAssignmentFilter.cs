@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using AzureFunctionsV2.HttpExtensions.Annotations;
 using AzureFunctionsV2.HttpExtensions.Exceptions;
+using AzureFunctionsV2.HttpExtensions.IL;
 using AzureFunctionsV2.HttpExtensions.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Host;
@@ -126,10 +127,17 @@ namespace AzureFunctionsV2.HttpExtensions.Infrastructure
             }
             catch (Exception e)
             {
-                var httpRequest = executingContext.Arguments.Values.FirstOrDefault(
-                        x => typeof(HttpRequest).IsAssignableFrom(x.GetType()))
-                    as HttpRequest;
-                httpRequest.HttpContext.StoreExceptionItem(e);
+                if (AssemblyUtils.IsILModified())
+                {
+                    var httpRequest = executingContext.Arguments.Values.FirstOrDefault(
+                            x => typeof(HttpRequest).IsAssignableFrom(x.GetType()))
+                        as HttpRequest;
+                    httpRequest.HttpContext.StoreExceptionItem(e);
+                }
+                else
+                {
+                    throw;
+                }
             }
         }
 

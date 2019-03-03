@@ -1,14 +1,12 @@
-﻿using AzureFunctionsV2.HttpExtensions.Authorization;
-using AzureFunctionsV2.HttpExtensions.Infrastructure;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System;
+﻿using System;
 using System.Linq;
 using System.Web.Http;
+using AzureFunctionsV2.HttpExtensions.Infrastructure;
 using AzureFunctionsV2.HttpExtensions.Utils;
-using Microsoft.Azure.WebJobs.Host;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
-namespace AzureFunctionsV2.HttpExtensions.ILInjects
+namespace AzureFunctionsV2.HttpExtensions.IL
 {
     /// <summary>
     /// The exception handler methods whose invocation is injected to the IL assembly code

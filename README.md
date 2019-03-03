@@ -12,9 +12,9 @@ to the function signature. It also adds some boilerplate code to take advantage 
 Function Filters in v2 Functions, allowing you to specify cross-cutting Exception 
 handling tasks combined with an overridable error response formatter.
 
-Also see the [NSwag.AzureFunctionsV2 project](https://github.com/Jusas/NSwag.AzureFunctionsV2) which is
-a Swagger Generator supplementing NSwag, built specifically to produce Swagger JSON from Azure Function Apps and fully
-supports the HttpExtensions project, allowing you to pretty much use a convenient syntax with
+__Also see the [NSwag.AzureFunctionsV2 project](https://github.com/Jusas/NSwag.AzureFunctionsV2)__ which is
+a Swagger Generator supplementing NSwag, built specifically to produce Swagger JSON from Azure Function Apps and __fully
+supports the HttpExtensions project__, allowing you to pretty much use a convenient syntax with
 HTTP request parameters defined in the Function signature and getting the full benefits of an automatic
 Swagger JSON generation from the Function App assembly. These two projects combined make
 Azure Functions a different experience, and building APIs with Functions is now less of a hassle.
@@ -75,6 +75,8 @@ Transfer-Encoding: chunked
 ```
 
 This functionality is provided by the exception filter.
+__Note: the exception filter is an optional feature and needs to be enabled manually__. Read more 
+about this in the [wiki](https://github.com/Jusas/AzureFunctionsV2.HttpExtensions/wiki/Exceptions)
 
 Further examples can be found from the example project __AzureFunctionsV2.HttpExtensions.Examples.FunctionApp__ and documentation on exception
 handling from the [wiki](https://github.com/Jusas/AzureFunctionsV2.HttpExtensions/wiki).
@@ -102,8 +104,6 @@ the values to each HttpParam's Value property there.
 
 It's worth noticing that the Function Filters are a somewhat new feature and have been marked as obsolete - _however they're not obsolete, they have only been marked obsolete due to the team not having fully finished the features to consider them complete._ (see https://github.com/Azure/azure-webjobs-sdk/issues/1284)
 
-# Known issues
-
-Currently it seems that the emulator and the Azure runtime behave a bit differently, causing the
-response codes coming from the Exception Filter to not work in Azure. This is being investigated.
-
+Also it's worth saying that the Azure Functions Exception Filter has no control over the return value of the Function
+and therefore a different approach has been taken in this library to tackle this issue.
+Read more about it in the [wiki](https://github.com/Jusas/AzureFunctionsV2.HttpExtensions/wiki/Exceptions).

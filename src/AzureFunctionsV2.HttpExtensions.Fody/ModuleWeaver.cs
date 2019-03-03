@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AzureFunctionsV2.HttpExtensions.ILInjects;
+using AzureFunctionsV2.HttpExtensions.IL;
 using Fody;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -143,8 +143,11 @@ namespace AzureFunctionsV2.HttpExtensions.Fody
 
                 // Unoptimize first, to not break things.
                 funcMethod.CompilerGeneratedMoveNext.Body.SimplifyMacros();
+                
+                // Find the FIRST try-catch block.
+                var tryCatchBlock = funcMethod.CompilerGeneratedMoveNext.Body.ExceptionHandlers
+                    .ToList().OrderBy(b => b.TryStart.Offset).First();
 
-                var tryCatchBlock = funcMethod.CompilerGeneratedMoveNext.Body.ExceptionHandlers.First();
                 var handlerCallInstructionIndex = 0; // insert to the very beginning.
                 int setExceptionInstructionIndex = FindSetExceptionInstructionIndex(instructions);
                 var setResultInstruction = FindOrCreateSetResultInstruction(instructions, funcMethod.CompilerGeneratedStateMachineType);

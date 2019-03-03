@@ -340,3 +340,4 @@ ASALocalRun/
 # BeatPulse healthcheck temp database 
 healthchecksdb
 logo.psd
+src/AzureFunctionsV2.HttpExtensions/AzureFunctionsV2.HttpExtensions.xml

@@ -1,1 +1,1 @@
-nuget pack AzureFunctionsV2.HttpExtensions.csproj -IncludeReferencedProjects
+nuget pack AzureFunctionsV2.HttpExtensions.csproj -IncludeReferencedProjects -Symbols

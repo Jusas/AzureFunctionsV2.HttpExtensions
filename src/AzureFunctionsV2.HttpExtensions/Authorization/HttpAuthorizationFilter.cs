@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AzureFunctionsV2.HttpExtensions.Exceptions;
+using AzureFunctionsV2.HttpExtensions.IL;
 using AzureFunctionsV2.HttpExtensions.Infrastructure;
 using AzureFunctionsV2.HttpExtensions.Utils;
 using Microsoft.AspNetCore.Http;
@@ -138,10 +139,17 @@ namespace AzureFunctionsV2.HttpExtensions.Authorization
             }
             catch (Exception e)
             {
-                var httpRequest = executingContext.Arguments.Values.FirstOrDefault(
-                        x => typeof(HttpRequest).IsAssignableFrom(x.GetType()))
-                    as HttpRequest;
-                httpRequest.HttpContext.StoreExceptionItem(e);
+                if (AssemblyUtils.IsILModified())
+                {
+                    var httpRequest = executingContext.Arguments.Values.FirstOrDefault(
+                            x => typeof(HttpRequest).IsAssignableFrom(x.GetType()))
+                        as HttpRequest;
+                    httpRequest.HttpContext.StoreExceptionItem(e);
+                }
+                else
+                {
+                    throw;
+                }
             }
         }
 

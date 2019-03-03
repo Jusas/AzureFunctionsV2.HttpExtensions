@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>AzureFunctionsV2.HttpExtensions</id>
-    <version>1.3.0-beta8</version>
+    <version>1.3.0</version>
     <authors>Jussi Saarivirta</authors>
     <owners>Jussi Saarivirta</owners>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
@@ -10,7 +10,7 @@
     <license type="expression">MIT</license>
     <projectUrl>https://github.com/Jusas/AzureFunctionsV2.HttpExtensions</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/Jusas/AzureFunctionsV2.HttpExtensions/master/assets/logo.png</iconUrl>
-    <description>Improves the Azure Functions HTTP Trigger experience by extending the infrastructure around it, allowing to define request parameters in the function signature and implementing boilerplate like exception filters.</description>
+    <description>Improves the Azure Functions HTTP Trigger experience by extending the infrastructure around it, allowing to define request parameters in the function signature and implementing boilerplate like exception filters and adds different authentication schemes.</description>
     <copyright>(c) 2019 Jussi Saarivirta</copyright>
     <tags>Azure Functions</tags>
     <repository type="Git" url="https://github.com/Jusas/AzureFunctionsV2.HttpExtensions" />
@@ -32,5 +32,6 @@
 	<file src="..\AzureFunctionsV2.HttpExtensions.Fody\bin\Release\netstandard2.0\AzureFunctionsV2.HttpExtensions.Fody.dll" target="netstandardweaver" />
 	<file src="bin\Release\netstandard2.0\AzureFunctionsV2.HttpExtensions.dll" target="netstandardweaver" />
 	<file src="..\AzureFunctionsV2.HttpExtensions.Fody\AzureFunctionsV2.HttpExtensions.props" target="build" />
+	<file src="bin\Release\netstandard2.0\AzureFunctionsV2.HttpExtensions.xml" target="lib\netstandard2.0" />
   </files>
 </package>

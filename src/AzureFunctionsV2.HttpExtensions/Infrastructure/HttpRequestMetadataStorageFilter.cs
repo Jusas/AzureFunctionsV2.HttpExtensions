@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using AzureFunctionsV2.HttpExtensions.ILInjects;
+using AzureFunctionsV2.HttpExtensions.IL;
 using AzureFunctionsV2.HttpExtensions.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Host;

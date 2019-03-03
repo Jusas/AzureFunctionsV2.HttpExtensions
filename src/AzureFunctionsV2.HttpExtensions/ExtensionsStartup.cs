@@ -1,7 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using AzureFunctionsV2.HttpExtensions;
 using AzureFunctionsV2.HttpExtensions.Authorization;
-using AzureFunctionsV2.HttpExtensions.ILInjects;
+using AzureFunctionsV2.HttpExtensions.IL;
 using AzureFunctionsV2.HttpExtensions.Infrastructure;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
